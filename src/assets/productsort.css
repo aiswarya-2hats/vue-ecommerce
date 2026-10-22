@@ -1,0 +1,40 @@
+.sort {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.sort select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235c5a57' d='M1 1l5 5 5-5'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.listing__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1.15rem;
+}
+
+.listing__count {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.listing__count strong {
+  font-weight: 600;
+  color: var(--ink);
+}

@@ -1,0 +1,256 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.header__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.85rem 1.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'burger logo actions'
+    'search search search'
+    'nav nav nav';
+  gap: 0.75rem 1rem;
+  align-items: center;
+}
+
+.logo {
+  grid-area: logo;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+.burger {
+  grid-area: burger;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+}
+
+.burger span {
+  display: block;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.burger--open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger--open span:nth-child(2) {
+  opacity: 0;
+}
+
+.burger--open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.search {
+  grid-area: search;
+  display: flex;
+  align-items: center;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.65rem 1rem;
+  font: inherit;
+  color: var(--ink);
+  outline: none;
+  min-width: 0;
+}
+
+.search__input::placeholder {
+  color: var(--ink-soft);
+}
+
+.search__btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.header__actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: var(--ink);
+}
+
+.icon-btn:hover {
+  background: var(--bg-soft);
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+
+.nav-desktop {
+  grid-area: nav;
+  display: none;
+  gap: 1.35rem;
+  padding-top: 0.15rem;
+  border-top: 1px solid var(--line);
+}
+
+.nav-desktop a {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  padding: 0.55rem 0;
+}
+
+.nav-desktop a:hover {
+  color: var(--ink);
+}
+
+/* Mobile drawer */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 18, 18, 0.4);
+  z-index: 110;
+  cursor: pointer;
+  height: 100svh;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(300px, 85vw);
+  height: 100vh;
+  background: var(--bg);
+  z-index: 120;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nav-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-close {
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-soft);
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: transparent;
+}
+
+.nav-drawer__links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.nav-drawer__links a {
+  padding: 0.75rem 0.5rem;
+  font-weight: 500;
+  border-radius: 8px;
+  color: var(--ink);
+}
+
+.nav-drawer__links a:hover {
+  background: var(--bg-soft);
+}
+
+@media (min-width: 768px) {
+  .header__inner {
+    grid-template-columns: auto auto 1fr auto;
+    grid-template-areas:
+      'burger logo search actions'
+      'nav nav nav nav';
+  }
+}
+
+@media (min-width: 1024px) {
+  .burger,
+  .nav-drawer,
+  .nav-overlay {
+    display: none !important;
+  }
+
+  .header__inner {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'logo search actions'
+      'nav nav nav';
+    padding: 0.9rem 1.5rem 0;
+  }
+
+  .nav-desktop {
+    display: flex;
+  }
+
+  .main {
+    padding: 1.75rem 1.5rem 2.5rem;
+  }
+}
