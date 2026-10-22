@@ -8,7 +8,7 @@ const props = defineProps({
     required: true,
   },
 })
-const emit = defineEmits(['add-to-cart'])
+const emit = defineEmits(['add-to-cart', 'toggle-wishlist'])
 
 function addToCart() {
   emit('add-to-cart', quantity.value)
@@ -27,6 +27,7 @@ function increase() {
 
 function toggleWishlist() {
   isWishlisted.value = !isWishlisted.value
+  emit('toggle-wishlist', isWishlisted.value ? 1 : -1)
 }
 </script>
 

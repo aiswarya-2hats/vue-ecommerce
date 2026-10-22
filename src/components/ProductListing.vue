@@ -13,11 +13,12 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['add-to-cart'])
+const emit = defineEmits(['add-to-cart', 'toggle-wishlist'])
 const selectedCategories = ref([])
 const selectedBrands = ref([])
 const minPrice = ref(0)
 const maxPrice = ref(2500)
+const minRating = ref(0)
 const sortBy = ref('price-asc')
 
 const products = productsData.products
@@ -35,7 +36,9 @@ const filteredProducts = computed(() => {
 
     const matchesPrice = p.price >= minPrice.value && p.price <= maxPrice.value
 
-    return matchesSearch && matchesCategory && matchesBrand && matchesPrice
+    const matchesRating = p.rating >= minRating.value
+
+    return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesRating
   })
 
   result = [...result] // copy before sort
@@ -59,6 +62,7 @@ const filteredProducts = computed(() => {
       v-model:selected-brands="selectedBrands"
       v-model:min-price="minPrice"
       v-model:max-price="maxPrice"
+      v-model:min-rating="minRating"
     />
     <section class="listing">
       <ProductSort v-model:sort-by="sortBy" />
@@ -68,6 +72,7 @@ const filteredProducts = computed(() => {
           :key="product.id"
           :product="product"
           @add-to-cart="emit('add-to-cart', $event)"
+          @toggle-wishlist="emit('toggle-wishlist', $event)"
         />
       </div>
     </section>
