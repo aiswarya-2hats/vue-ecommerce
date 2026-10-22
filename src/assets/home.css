@@ -1,16 +1,11 @@
 .home {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 4rem 1.25rem 5rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 1.25rem;
   min-height: 60vh;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, var(--accent-soft), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 80%, var(--bg-muted), transparent 50%),
-    var(--bg);
 }
 
 .home__title {
@@ -60,7 +55,19 @@
 
 @media (min-width: 768px) {
   .home {
-    padding: 5.5rem 1.5rem 6.5rem;
     justify-content: center;
   }
+}
+.home__banner {
+  width: 100%;
+  max-width: 1280px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.home__banner-slide img {
+  width: 100%;
+  height: clamp(200px, 40vw, 520px);
+  object-fit: cover;
+  display: block;
 }
