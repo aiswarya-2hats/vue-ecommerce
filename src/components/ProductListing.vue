@@ -1,80 +1,298 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Filter from './Filter.vue'
 import ProductCard from './ProductCard.vue'
 import ProductSort from './ProductSort.vue'
+import { getProducts, getCategories } from '../services/productService'
 import '../assets/productlisting.css'
-import productsData from '../products.json'
 
-const props = defineProps({
-  searchQuery: {
-    type: String,
-    default: '',
-  },
+const route = useRoute()
+const router = useRouter()
+
+const products = ref([])
+const categories = ref([])
+const loading = ref(true)
+const error = ref(null)
+
+// Read filter values from the URL
+const searchQuery = computed(() => route.query.q || '') // get search query from URL
+const selectedCategory = computed(() => (route.query.category ? String(route.query.category) : ''))
+const selectedBrands = computed(
+  () =>
+    // get brands from URL
+    route.query.brand ? String(route.query.brand).split(',').filter(Boolean) : [], // if brands are in the URL, split them by comma and filter out empty brands
+)
+const selectedRating = computed(() => (route.query.rating ? Number(route.query.rating) : null)) // get rating from URL
+const selectedSort = computed(() => route.query.sort || 'price-asc') // get sort from URL
+const minPrice = computed(() =>
+  route.query.minPrice != null && route.query.minPrice !== '' ? Number(route.query.minPrice) : 0,
+)
+const maxPrice = computed(() =>
+  route.query.maxPrice != null && route.query.maxPrice !== '' ? Number(route.query.maxPrice) : 2500,
+)
+
+const sortMap = {
+  'price-asc': { sortBy: 'price', order: 'asc' },
+  'price-desc': { sortBy: 'price', order: 'desc' },
+  name: { sortBy: 'title', order: 'asc' },
+}
+
+const availableBrands = computed(() => {
+  // get available brands from products
+  const brands = products.value.map((p) => p.brand).filter(Boolean) // map products to brands and filter out empty brands
+  return [...new Set(brands)].sort().slice(0, 7) // return unique brands and sort them
 })
-
-const emit = defineEmits(['add-to-cart', 'toggle-wishlist'])
-const selectedCategories = ref([])
-const selectedBrands = ref([])
-const minPrice = ref(0)
-const maxPrice = ref(2500)
-const minRating = ref(0)
-const sortBy = ref('price-asc')
-
-const products = productsData.products
 
 const filteredProducts = computed(() => {
-  const q = props.searchQuery.toLowerCase().trim()
-
-  let result = products.filter((p) => {
-    const matchesSearch = !q || p.title.toLowerCase().includes(q)
-
-    const matchesCategory =
-      selectedCategories.value.length === 0 || selectedCategories.value.includes(p.category)
-
-    const matchesBrand = selectedBrands.value.length === 0 || selectedBrands.value.includes(p.brand)
-
-    const matchesPrice = p.price >= minPrice.value && p.price <= maxPrice.value
-
-    const matchesRating = p.rating >= minRating.value
-
-    return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesRating
+  return products.value.filter((product) => {
+    const matchBrand =
+      selectedBrands.value.length === 0 || selectedBrands.value.includes(product.brand)
+    const matchRating = !selectedRating.value || product.rating >= selectedRating.value // if rating is not selected, or product rating is greater than or equal to selected rating
+    const matchPrice = product.price >= minPrice.value && product.price <= maxPrice.value
+    return matchBrand && matchRating && matchPrice
   })
+})
 
-  result = [...result] // copy before sort
+const activeFilters = computed(() => {
+  const chips = [] // create a new array to store the active filters
 
-  if (sortBy.value === 'price-asc') {
-    result.sort((a, b) => a.price - b.price)
-  } else if (sortBy.value === 'price-desc') {
-    result.sort((a, b) => b.price - a.price)
-  } else if (sortBy.value === 'name') {
-    result.sort((a, b) => a.title.localeCompare(b.title))
+  if (searchQuery.value) {
+    chips.push({ key: 'q', label: `“${searchQuery.value}”`, type: 'q' }) // add the search query filter to the array
+  }
+  if (selectedCategory.value) {
+    chips.push({
+      // add the category filter to the array
+      key: 'category',
+      label: selectedCategory.value,
+      type: 'category',
+    })
+  }
+  selectedBrands.value.forEach((brand) => {
+    chips.push({ key: `brand-${brand}`, label: brand, type: 'brand', value: brand })
+  })
+  if (selectedRating.value) {
+    chips.push({
+      // add the rating filter to the array
+      key: 'rating',
+      label: `${selectedRating.value}★ & up`,
+      type: 'rating',
+    })
+  }
+  if (minPrice.value > 0 || maxPrice.value < 2500) {
+    chips.push({
+      // add the price filter to the array
+      key: 'price',
+      label: `$${minPrice.value} – $${maxPrice.value}`,
+      type: 'price',
+    })
   }
 
-  return result
+  return chips // return the array of active filters to display
 })
+
+const PAGE_SIZE = 12
+const page = ref(1)
+
+const totalPages = computed(() => Math.ceil(filteredProducts.value.length / PAGE_SIZE) || 1) // calculate the total number of pages
+
+const paginatedProducts = computed(() => {
+  const start = (page.value - 1) * PAGE_SIZE
+  return filteredProducts.value.slice(start, start + PAGE_SIZE)
+})
+
+watch(filteredProducts, () => {
+  page.value = 1
+})
+
+function updateQuery(updates) {
+  // update the query string in the URL after a filter is applied or removed
+  const query = { ...route.query, ...updates }
+
+  Object.keys(query).forEach((key) => {
+    if (query[key] === '' || query[key] == null || query[key] === false) {
+      delete query[key]
+    }
+  })
+
+  router.replace({ query })
+}
+
+// function setCategory(category) {
+//   updateQuery({ category: category || '' })
+// }
+
+function setCategory(category) {
+  updateQuery({
+    category: category || '',
+    brand: '', // remove old brands
+  })
+}
+
+function setBrands(list) {
+  // set brands in URL
+  updateQuery({ brand: list.length ? list.join(',') : '' }) // if list is not empty, join the brands with a comma
+}
+
+function setRating(value) {
+  // set rating in URL
+  updateQuery({ rating: value || '' }) // if value is not empty, set the rating in the URL
+}
+
+function setPrice({ min, max }) {
+  // set price in URL
+  updateQuery({
+    minPrice: min === 0 ? '' : min,
+    maxPrice: max === 2500 ? '' : max,
+  })
+}
+
+function setSort(value) {
+  updateQuery({ sort: value })
+}
+
+function removeFilter(chip) {
+  //remove individual filter by resetting the query string in the URL
+  if (chip.type === 'q') updateQuery({ q: '' })
+  else if (chip.type === 'category') setCategory('')
+  else if (chip.type === 'brand') setBrands(selectedBrands.value.filter((b) => b !== chip.value))
+  else if (chip.type === 'rating') setRating(null)
+  else if (chip.type === 'price') setPrice({ min: 0, max: 2500 })
+}
+
+function clearAllFilters() {
+  // clear all filters by resetting the query string in the URL
+  updateQuery({
+    q: '',
+    category: '',
+    brand: '',
+    rating: '',
+    minPrice: '',
+    maxPrice: '',
+  })
+}
+
+async function fetchCategories() {
+  try {
+    const data = await getCategories()
+    categories.value = data.slice(0, 7)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function fetchProducts() {
+  loading.value = true
+  error.value = null
+
+  try {
+    const { sortBy, order } = sortMap[selectedSort.value] || sortMap['price-asc']
+
+    let list = await getProducts({
+      q: searchQuery.value,
+      // API category endpoint can't combine with search — apply category after search
+      category: searchQuery.value ? '' : selectedCategory.value,
+      sortBy,
+      order,
+      limit: 0,
+    })
+
+    if (searchQuery.value && selectedCategory.value) {
+      list = list.filter((p) => p.category === selectedCategory.value)
+    }
+
+    products.value = list
+  } catch (err) {
+    error.value = 'Failed to load products'
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(
+  () => [route.query.q, route.query.category, route.query.sort],
+  () => {
+    fetchProducts()
+  },
+  { immediate: true },
+)
+
+fetchCategories()
 </script>
 
 <template>
   <div class="layout">
     <Filter
-      v-model:selected-categories="selectedCategories"
-      v-model:selected-brands="selectedBrands"
-      v-model:min-price="minPrice"
-      v-model:max-price="maxPrice"
-      v-model:min-rating="minRating"
+      :categories="categories"
+      :brands="availableBrands"
+      :selected-category="selectedCategory"
+      :selected-brands="selectedBrands"
+      :selected-rating="selectedRating"
+      :min-price="minPrice"
+      :max-price="maxPrice"
+      @update:category="setCategory"
+      @update:brands="setBrands"
+      @update:rating="setRating"
+      @update:price="setPrice"
     />
     <section class="listing">
-      <ProductSort v-model:sort-by="sortBy" />
-      <div class="products">
-        <ProductCard
-          v-for="product in filteredProducts"
-          :key="product.id"
-          :product="product"
-          @add-to-cart="emit('add-to-cart', $event)"
-          @toggle-wishlist="emit('toggle-wishlist', $event)"
-        />
+      <ProductSort :sort="selectedSort" @update:sort="setSort" />
+
+      <div v-if="activeFilters.length" class="filter-chips" aria-label="Active filters">
+        <span v-for="chip in activeFilters" :key="chip.key" class="filter-chip">
+          {{ chip.label }}
+          <button
+            type="button"
+            class="filter-chip__close"
+            :aria-label="`Remove ${chip.label} filter`"
+            @click="removeFilter(chip)"
+          >
+            <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </span>
+        <button type="button" class="filter-chips__clear" @click="clearAllFilters">
+          Clear all
+        </button>
       </div>
+
+      <div v-if="loading" class="products">
+        <div v-for="n in 8" :key="n" class="skeleton-card">
+          <div class="skeleton-card__image"></div>
+          <div class="skeleton-card__line"></div>
+          <div class="skeleton-card__line short"></div>
+        </div>
+      </div>
+      <p v-else-if="error">{{ error }}</p>
+      <p v-else-if="filteredProducts.length === 0">No products found.</p>
+
+      <template v-else>
+        <div class="products">
+          <ProductCard
+            v-for="product in paginatedProducts"
+            :key="product.id"
+            :id="product.id"
+            :image="product.thumbnail"
+            :title="product.title"
+            :stock="product.stock"
+            :rating="product.rating"
+            :price="product.price"
+          />
+        </div>
+        <div v-if="totalPages > 1" class="pagination">
+          <button type="button" :disabled="page === 1" @click="page--">Prev</button>
+          <span>{{ page }} / {{ totalPages }}</span>
+          <button type="button" :disabled="page === totalPages" @click="page++">Next</button>
+        </div>
+      </template>
     </section>
   </div>
 </template>

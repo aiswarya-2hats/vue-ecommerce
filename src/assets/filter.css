@@ -33,7 +33,7 @@
 }
 
 .filters__toggle:hover {
-  border-color: #cfc8bc;
+  border-color: var(--line);
 }
 
 .filters__toggle-text {

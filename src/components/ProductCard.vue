@@ -1,46 +1,61 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { isWishlisted, toggleWishlist } from '../utils/wishlist'
+import { addToCart, getQty } from '../utils/cart'
 import '../assets/productcard.css'
 
 const props = defineProps({
-  product: {
-    type: Object,
-    required: true,
-  },
+  id: { type: [Number, String], required: true },
+  image: { type: String, required: true },
+  title: { type: String, required: true },
+  stock: { type: [Number, String], required: true },
+  rating: { type: [Number, String], required: true },
+  price: { type: [Number, String], required: true },
 })
-const emit = defineEmits(['add-to-cart', 'toggle-wishlist'])
 
-function addToCart() {
-  emit('add-to-cart', quantity.value)
+const wishlisted = computed(() => isWishlisted(props.id))
+const qty = ref(1)
+
+// How many more can still be added (stock minus what's already in cart)
+const stockLeft = computed(() => Math.max(0, Number(props.stock) - getQty(props.id)))
+const canAdd = computed(() => stockLeft.value > 0 && qty.value <= stockLeft.value)
+
+const filledStars = computed(() => {
+  // compute the filled stars
+  const count = Math.round(Number(props.rating)) || 0 // round the rating to the nearest integer
+  const filled = Math.min(5, Math.max(0, count)) // limit the number of filled stars to 5
+  return '★'.repeat(filled) + '☆'.repeat(5 - filled) // return the filled stars and empty stars
+})
+
+function onToggleWish() {
+  toggleWishlist(props.id)
 }
 
-const quantity = ref(1)
-const isWishlisted = ref(false)
-
-function decrease() {
-  if (quantity.value > 1) quantity.value--
+function decreaseQty() {
+  if (qty.value > 1) qty.value -= 1
 }
 
-function increase() {
-  if (quantity.value < props.product.stock) quantity.value++
+function increaseQty() {
+  if (qty.value < stockLeft.value) qty.value += 1
 }
 
-function toggleWishlist() {
-  isWishlisted.value = !isWishlisted.value
-  emit('toggle-wishlist', isWishlisted.value ? 1 : -1)
+function onAddToCart() {
+  if (!canAdd.value) return
+  addToCart(props.id, qty.value)
 }
 </script>
 
 <template>
   <article class="product">
     <div class="product__media">
+      <img :src="image" :alt="title" class="product__image" />
       <button
         type="button"
         class="product__wish"
-        :class="{ 'product__wish--active': isWishlisted }"
-        :aria-label="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
-        :aria-pressed="isWishlisted"
-        @click="toggleWishlist"
+        :class="{ 'product__wish--active': wishlisted }"
+        :aria-label="wishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
+        :aria-pressed="wishlisted"
+        @click="onToggleWish"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -60,39 +75,42 @@ function toggleWishlist() {
       </button>
     </div>
     <div class="product__body">
-      <img :src="product.thumbnail" :alt="product.title" class="product__image" />
-      <p class="product__brand" v-if="product.stock">Stock:{{ product.stock }}</p>
-      <h3 class="product__name" v-if="product.title">{{ product.title }}</h3>
-      <p class="product__rating" v-if="product.rating">
-        <span class="stars">★★★★★</span> ({{ product.rating }})
+      <p class="product__brand">Stock:{{ stock }}</p>
+      <h3 class="product__name">{{ title }}</h3>
+      <p class="product__rating">
+        <span class="stars">{{ filledStars }}</span> ({{ rating }})
       </p>
-      <p class="product__price" v-if="product.price">${{ product.price }}</p>
+      <p class="product__price">${{ price }}</p>
 
       <div class="qty">
         <button
           type="button"
           class="qty__btn"
           aria-label="Decrease quantity"
-          :disabled="quantity <= 1"
-          @click="decrease"
+          :disabled="qty <= 1"
+          @click="decreaseQty"
         >
           −
         </button>
-        <span class="qty__value">{{ quantity }}</span>
+        <span class="qty__value">{{ qty }}</span>
         <button
           type="button"
           class="qty__btn"
           aria-label="Increase quantity"
-          :disabled="quantity >= product.stock"
-          @click="increase"
+          :disabled="qty >= stockLeft"
+          @click="increaseQty"
         >
           +
         </button>
       </div>
 
       <div class="product__actions">
-        <button type="button" class="btn btn--primary">Buy Now</button>
-        <button type="button" class="btn btn--secondary" @click="addToCart">Add to Cart</button>
+        <button type="button" class="btn btn--primary" :disabled="!canAdd" @click="onAddToCart">
+          Buy Now
+        </button>
+        <button type="button" class="btn btn--secondary" :disabled="!canAdd" @click="onAddToCart">
+          Add to Cart
+        </button>
       </div>
     </div>
   </article>

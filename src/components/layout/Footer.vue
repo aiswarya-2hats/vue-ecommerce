@@ -1,5 +1,5 @@
 <script setup>
-import '../assets/footer.css'
+import '../../assets/footer.css'
 </script>
 <template>
   <footer class="footer">

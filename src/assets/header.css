@@ -60,18 +60,6 @@
     opacity 0.2s ease;
 }
 
-.burger--open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.burger--open span:nth-child(2) {
-  opacity: 0;
-}
-
-.burger--open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
 .search {
   grid-area: search;
   display: flex;
@@ -164,7 +152,7 @@
   color: var(--ink);
 }
 
-/* Mobile drawer */
+/* Mobile drawer (CSS checkbox toggle) */
 .nav-overlay {
   position: fixed;
   inset: 0;
@@ -172,6 +160,7 @@
   z-index: 110;
   cursor: pointer;
   height: 100svh;
+  display: none;
 }
 
 .nav-drawer {
@@ -187,6 +176,30 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+
+.menu-toggle:checked ~ .nav-overlay {
+  display: block;
+}
+
+.menu-toggle:checked ~ .nav-drawer {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.menu-toggle:checked ~ .burger span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-toggle:checked ~ .burger span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle:checked ~ .burger span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 .nav-drawer__head {

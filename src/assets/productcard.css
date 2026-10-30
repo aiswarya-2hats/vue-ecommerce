@@ -10,6 +10,14 @@
     box-shadow 0.2s ease;
 }
 
+.product__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1; /* box size fixed before image loads */
+  object-fit: cover; /* fill the box without stretching */
+  background: #ffffff; /* optional placeholder color */
+}
+
 .product:hover {
   border-color: #cfc8bc;
   box-shadow: var(--shadow);
@@ -124,6 +132,13 @@
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
+}
+
+.product__stock-msg {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--wish);
 }
 
 .qty {
