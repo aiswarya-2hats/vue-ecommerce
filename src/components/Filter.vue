@@ -8,11 +8,18 @@ const props = defineProps({
   selectedCategory: { type: String, default: '' }, // get selected category from URL
   selectedBrands: { type: Array, default: () => [] }, // get selected brands from URL
   selectedRating: { type: Number, default: null }, // get selected rating from URL
+  inStockOnly: { type: Boolean, default: false },
   minPrice: { type: Number, default: 0 },
   maxPrice: { type: Number, default: 2500 },
 })
 
-const emit = defineEmits(['update:category', 'update:brands', 'update:rating', 'update:price'])
+const emit = defineEmits([
+  'update:category',
+  'update:brands',
+  'update:rating',
+  'update:inStock',
+  'update:price',
+])
 
 const ratingOptions = [
   { value: 5, label: '★★★★★' },
@@ -34,6 +41,10 @@ function toggleBrand(brand, checked) {
 
 function onRatingChange(value) {
   emit('update:rating', value)
+}
+
+function onInStockChange(checked) {
+  emit('update:inStock', checked)
 }
 </script>
 
@@ -125,6 +136,18 @@ function onRatingChange(value) {
               @change="onRatingChange(null)"
             />
             Any rating
+          </label>
+        </section>
+
+        <section class="filter-group">
+          <h3 class="filter-group__title">Availability</h3>
+          <label class="check">
+            <input
+              type="checkbox"
+              :checked="inStockOnly"
+              @change="onInStockChange($event.target.checked)"
+            />
+            In stock only
           </label>
         </section>
       </div>

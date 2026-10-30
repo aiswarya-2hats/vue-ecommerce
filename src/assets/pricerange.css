@@ -1,41 +1,187 @@
+.price-range-wrap {
+  position: relative;
+  height: 1.75rem;
+  margin: 0.15rem 0 0.85rem;
+}
+
+.price-range-track,
+.price-range-fill {
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.price-range-track {
+  left: 0;
+  right: 0;
+  background: var(--line);
+}
+
+.price-range-fill {
+  left: var(--range-left, 0%);
+  width: calc(var(--range-right, 100%) - var(--range-left, 0%));
+  background: var(--accent);
+}
+
+.price-range {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+  outline: none;
+}
+
+.price-range.is-active {
+  z-index: 3;
+}
+
+.price-range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+  border: none;
+}
+
+.price-range::-moz-range-track {
+  height: 4px;
+  background: transparent;
+  border: none;
+}
+
+.price-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-btn);
+  pointer-events: auto;
+  cursor: grab;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.price-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-btn);
+  pointer-events: auto;
+  cursor: grab;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.price-range:hover::-webkit-slider-thumb,
+.price-range.is-active::-webkit-slider-thumb {
+  background: var(--accent-soft);
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.price-range:hover::-moz-range-thumb,
+.price-range.is-active::-moz-range-thumb {
+  background: var(--accent-soft);
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.price-range:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.price-range:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.price-range:active::-webkit-slider-thumb,
+.price-range:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+
 .price-inputs {
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
 }
 
-.price-inputs label {
+.price-field {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+.price-field__label {
   font-size: 0.75rem;
   color: var(--ink-soft);
 }
 
-.price-inputs input {
-  width: 100%;
-  padding: 0.45rem 0.55rem;
+.price-field__control {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.55rem;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--bg);
+  transition: border-color 0.15s ease;
+}
+
+.price-field__control:focus-within {
+  border-color: var(--accent);
+}
+
+.price-field__prefix {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.price-field__control input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
   font: inherit;
+  font-size: 0.9rem;
   color: var(--ink);
+  outline: none;
+  /* hide number spinners for a cleaner field */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.price-field__control input::-webkit-outer-spin-button,
+.price-field__control input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
 }
 
 .price-dash {
-  padding-bottom: 0.45rem;
+  padding-bottom: 0.55rem;
   color: var(--ink-soft);
-}
-
-.price-range {
-  width: 100%;
-  accent-color: var(--accent);
-}
-
-.price-hint {
-  margin-top: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--ink-soft);
+  line-height: 1;
 }

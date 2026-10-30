@@ -18,12 +18,20 @@ const error = ref(null)
 // Read filter values from the URL
 const searchQuery = computed(() => route.query.q || '') // get search query from URL
 const selectedCategory = computed(() => (route.query.category ? String(route.query.category) : ''))
+const categoryHeading = computed(() => {
+  if (!selectedCategory.value) return 'All products'
+  return selectedCategory.value
+    .split(/[-_]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+})
 const selectedBrands = computed(
   () =>
     // get brands from URL
     route.query.brand ? String(route.query.brand).split(',').filter(Boolean) : [], // if brands are in the URL, split them by comma and filter out empty brands
 )
 const selectedRating = computed(() => (route.query.rating ? Number(route.query.rating) : null)) // get rating from URL
+const inStockOnly = computed(() => route.query.inStock === '1' || route.query.inStock === 'true')
 const selectedSort = computed(() => route.query.sort || 'price-asc') // get sort from URL
 const minPrice = computed(() =>
   route.query.minPrice != null && route.query.minPrice !== '' ? Number(route.query.minPrice) : 0,
@@ -36,6 +44,7 @@ const sortMap = {
   'price-asc': { sortBy: 'price', order: 'asc' },
   'price-desc': { sortBy: 'price', order: 'desc' },
   name: { sortBy: 'title', order: 'asc' },
+  'best-selling': { sortBy: 'rating', order: 'desc' },
 }
 
 const availableBrands = computed(() => {
@@ -50,7 +59,8 @@ const filteredProducts = computed(() => {
       selectedBrands.value.length === 0 || selectedBrands.value.includes(product.brand)
     const matchRating = !selectedRating.value || product.rating >= selectedRating.value // if rating is not selected, or product rating is greater than or equal to selected rating
     const matchPrice = product.price >= minPrice.value && product.price <= maxPrice.value
-    return matchBrand && matchRating && matchPrice
+    const matchStock = !inStockOnly.value || Number(product.stock) > 0
+    return matchBrand && matchRating && matchPrice && matchStock
   })
 })
 
@@ -79,6 +89,9 @@ const activeFilters = computed(() => {
       type: 'rating',
     })
   }
+  if (inStockOnly.value) {
+    chips.push({ key: 'inStock', label: 'In stock only', type: 'inStock' })
+  }
   if (minPrice.value > 0 || maxPrice.value < 2500) {
     chips.push({
       // add the price filter to the array
@@ -105,9 +118,20 @@ watch(filteredProducts, () => {
   page.value = 1
 })
 
+// Keep a local copy so rapid filter updates don't overwrite each other
+// (route.query can lag behind router.replace)
+const queryDraft = ref({ ...route.query })
+
+watch(
+  () => route.query,
+  (query) => {
+    queryDraft.value = { ...query }
+  },
+)
+
 function updateQuery(updates) {
   // update the query string in the URL after a filter is applied or removed
-  const query = { ...route.query, ...updates }
+  const query = { ...queryDraft.value, ...updates }
 
   Object.keys(query).forEach((key) => {
     if (query[key] === '' || query[key] == null || query[key] === false) {
@@ -115,6 +139,7 @@ function updateQuery(updates) {
     }
   })
 
+  queryDraft.value = query
   router.replace({ query })
 }
 
@@ -139,6 +164,10 @@ function setRating(value) {
   updateQuery({ rating: value || '' }) // if value is not empty, set the rating in the URL
 }
 
+function setInStock(value) {
+  updateQuery({ inStock: value ? '1' : '' })
+}
+
 function setPrice({ min, max }) {
   // set price in URL
   updateQuery({
@@ -157,6 +186,7 @@ function removeFilter(chip) {
   else if (chip.type === 'category') setCategory('')
   else if (chip.type === 'brand') setBrands(selectedBrands.value.filter((b) => b !== chip.value))
   else if (chip.type === 'rating') setRating(null)
+  else if (chip.type === 'inStock') setInStock(false)
   else if (chip.type === 'price') setPrice({ min: 0, max: 2500 })
 }
 
@@ -167,6 +197,7 @@ function clearAllFilters() {
     category: '',
     brand: '',
     rating: '',
+    inStock: '',
     minPrice: '',
     maxPrice: '',
   })
@@ -229,15 +260,17 @@ fetchCategories()
       :selected-category="selectedCategory"
       :selected-brands="selectedBrands"
       :selected-rating="selectedRating"
+      :in-stock-only="inStockOnly"
       :min-price="minPrice"
       :max-price="maxPrice"
       @update:category="setCategory"
       @update:brands="setBrands"
       @update:rating="setRating"
+      @update:inStock="setInStock"
       @update:price="setPrice"
     />
     <section class="listing">
-      <ProductSort :sort="selectedSort" @update:sort="setSort" />
+      <ProductSort :sort="selectedSort" :heading="categoryHeading" @update:sort="setSort" />
 
       <div v-if="activeFilters.length" class="filter-chips" aria-label="Active filters">
         <span v-for="chip in activeFilters" :key="chip.key" class="filter-chip">
