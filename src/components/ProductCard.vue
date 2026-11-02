@@ -1,8 +1,14 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { isWishlisted, toggleWishlist } from '../utils/wishlist'
-import { addToCart, getQty } from '../utils/cart'
+import { useWishlist } from '../composables/useWishlist'
+import { useCart } from '../composables/useCart'
 import '../assets/productcard.css'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+function navigateToDetail() {
+  router.push(`/detail/${props.id}`)
+}
 
 const props = defineProps({
   id: { type: [Number, String], required: true },
@@ -11,7 +17,12 @@ const props = defineProps({
   stock: { type: [Number, String], required: true },
   rating: { type: [Number, String], required: true },
   price: { type: [Number, String], required: true },
+  discount: { type: [Number, String], required: true },
+  brand: { type: String, required: true },
 })
+
+const { isWishlisted, toggle: toggleWishlist } = useWishlist()
+const { add: addToCart, getQty } = useCart()
 
 const wishlisted = computed(() => isWishlisted(props.id))
 const qty = ref(1)
@@ -25,6 +36,14 @@ const filledStars = computed(() => {
   const count = Math.round(Number(props.rating)) || 0 // round the rating to the nearest integer
   const filled = Math.min(5, Math.max(0, count)) // limit the number of filled stars to 5
   return '★'.repeat(filled) + '☆'.repeat(5 - filled) // return the filled stars and empty stars
+})
+
+const hasDiscount = computed(() => Number(props.discount) > 0)
+
+const originalPrice = computed(() => {
+  const pct = Number(props.discount)
+  if (pct <= 0) return Number(props.price)
+  return Number(props.price) / (1 - pct / 100)
 })
 
 function onToggleWish() {
@@ -48,7 +67,9 @@ function onAddToCart() {
 <template>
   <article class="product">
     <div class="product__media">
-      <img :src="image" :alt="title" class="product__image" />
+      <router-link :to="`/products/${id}`" class="product__link">
+        <img :src="image" :alt="title" class="product__image" />
+      </router-link>
       <button
         type="button"
         class="product__wish"
@@ -75,12 +96,22 @@ function onAddToCart() {
       </button>
     </div>
     <div class="product__body">
-      <p class="product__brand">Stock:{{ stock }}</p>
-      <h3 class="product__name">{{ title }}</h3>
+      <span class="product__brand">{{ brand }}</span>
+      <h3 class="product__name">
+        <router-link :to="`/products/${id}`" class="product__link">{{ title }}</router-link>
+      </h3>
       <p class="product__rating">
         <span class="stars">{{ filledStars }}</span> ({{ rating }})
       </p>
-      <p class="product__price">${{ price }}</p>
+      <p class="product__price">
+        ${{ Number(price).toFixed(2) }}
+        <template v-if="hasDiscount">
+          <s class="product__original-price">${{ originalPrice.toFixed(2) }}</s>
+          <span class="product__discount">{{ Number(discount).toFixed(0) }}% off</span>
+        </template>
+      </p>
+      <p v-if="stockLeft > 0" class="product__brand">Stock: {{ stockLeft }}</p>
+      <p v-else class="product__stock-msg">Out of stock</p>
 
       <div class="qty">
         <button
@@ -105,7 +136,7 @@ function onAddToCart() {
       </div>
 
       <div class="product__actions">
-        <button type="button" class="btn btn--primary">Buy Now</button>
+        <button type="button" class="btn btn--primary" @click="navigateToDetail">Buy Now</button>
         <button type="button" class="btn btn--secondary" :disabled="!canAdd" @click="onAddToCart">
           Add to Cart
         </button>

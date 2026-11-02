@@ -68,7 +68,7 @@ const activeFilters = computed(() => {
   const chips = [] // create a new array to store the active filters
 
   if (searchQuery.value) {
-    chips.push({ key: 'q', label: `“${searchQuery.value}”`, type: 'q' }) // add the search query filter to the array
+    chips.push({ key: 'q', label: `Search: ${searchQuery.value}`, type: 'q' }) // add the search query filter to the array
   }
   if (selectedCategory.value) {
     chips.push({
@@ -318,6 +318,8 @@ fetchCategories()
             :stock="product.stock"
             :rating="product.rating"
             :price="product.price"
+            :discount="product.discountPercentage"
+            :brand="product.brand"
           />
         </div>
         <div v-if="totalPages > 1" class="pagination">

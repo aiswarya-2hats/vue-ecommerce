@@ -1,13 +1,22 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { wishlistCount } from '../../utils/wishlist'
-import { cartCount } from '../../utils/cart'
+import { useWishlist } from '../../composables/useWishlist'
+import { useCart } from '../../composables/useCart'
+import { getProducts } from '../../services/productService'
 import '../../assets/header.css'
 
 const route = useRoute()
 const router = useRouter()
+const { wishlistCount } = useWishlist()
+const { cartCount } = useCart()
 const searchText = ref(route.query.q || '')
+const suggestions = ref([])
+const isFocused = ref(false)
+const activeIndex = ref(-1)
+const hasSearched = ref(false)
+
+let searchTimer = null
 
 // Keep the search box in sync when the URL changes (e.g. browser back/forward)
 watch(
@@ -17,8 +26,40 @@ watch(
   },
 )
 
+// Live suggestions once the query has at least 3 characters
+watch(searchText, (value) => {
+  clearTimeout(searchTimer)
+  const q = value.trim()
+  activeIndex.value = -1
+  hasSearched.value = false
+
+  if (q.length < 3) {
+    suggestions.value = []
+    return
+  }
+
+  searchTimer = setTimeout(async () => {
+    suggestions.value = await getProducts({ q, limit: 6 })
+    activeIndex.value = -1
+    hasSearched.value = true
+  }, 250)
+})
+
+function closeDropdown() {
+  isFocused.value = false
+  activeIndex.value = -1
+}
+
 function onSearch(event) {
   event.preventDefault() //prevent page fully reloading when search is submitted
+
+  // Enter with a highlighted suggestion → open that product
+  if (activeIndex.value >= 0 && suggestions.value[activeIndex.value]) {
+    goToProduct(suggestions.value[activeIndex.value].id)
+    return
+  }
+
+  closeDropdown()
   const q = searchText.value.trim() // remove spaces at strat/end
   const query = { ...route.query } //keep other url params
 
@@ -29,6 +70,45 @@ function onSearch(event) {
   }
 
   router.push({ path: '/products', query }) // goto /products with that search query
+}
+
+function goToProduct(id) {
+  closeDropdown()
+  searchText.value = ''
+  suggestions.value = []
+  router.push(`/products/${id}`)
+}
+
+function onBlur() {
+  // slight delay so a click on a suggestion can register first
+  setTimeout(closeDropdown, 150)
+}
+
+function clearSearch() {
+  searchText.value = ''
+  suggestions.value = []
+  activeIndex.value = -1
+  hasSearched.value = false
+  isFocused.value = true
+}
+
+function onSearchKeydown(event) {
+  if (!suggestions.value.length) return
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    isFocused.value = true
+    activeIndex.value = (activeIndex.value + 1) % suggestions.value.length
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    isFocused.value = true
+    activeIndex.value =
+      activeIndex.value <= 0 ? suggestions.value.length - 1 : activeIndex.value - 1
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    closeDropdown()
+    suggestions.value = []
+  }
 }
 </script>
 
@@ -47,12 +127,39 @@ function onSearch(event) {
       <form class="search" @submit="onSearch">
         <input
           v-model="searchText"
-          type="search"
+          type="text"
           class="search__input"
           placeholder="Search products..."
           aria-label="Search products"
+          autocomplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          :aria-expanded="isFocused && suggestions.length > 0"
+          :aria-activedescendant="
+            activeIndex >= 0 ? `search-option-${suggestions[activeIndex]?.id}` : undefined
+          "
+          @focus="isFocused = true"
+          @blur="onBlur"
+          @keydown="onSearchKeydown"
         />
-        <button type="submit" class="search__btn" aria-label="Search">
+        <button
+          v-if="searchText.trim()"
+          type="button"
+          class="search__btn"
+          aria-label="Clear search"
+          @click="clearSearch"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              d="M6 6l12 12M18 6L6 18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+        <button v-else type="submit" class="search__btn" aria-label="Search">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
             <path
@@ -64,6 +171,31 @@ function onSearch(event) {
             />
           </svg>
         </button>
+
+        <ul
+          v-if="isFocused && (suggestions.length || hasSearched)"
+          class="search__dropdown"
+          role="listbox"
+        >
+          <li v-if="!suggestions.length" class="search__empty">No products found</li>
+          <li
+            v-for="(product, index) in suggestions"
+            :id="`search-option-${product.id}`"
+            :key="product.id"
+            class="search__option"
+            :class="{ 'search__option--active': index === activeIndex }"
+            role="option"
+            :aria-selected="index === activeIndex"
+            @mousedown.prevent="goToProduct(product.id)"
+            @mouseenter="activeIndex = index"
+          >
+            <img :src="product.thumbnail" :alt="product.title" class="search__thumb" />
+            <span class="search__meta">
+              <span class="search__title">{{ product.title }}</span>
+              <span class="search__price">${{ product.price }}</span>
+            </span>
+          </li>
+        </ul>
       </form>
 
       <div class="header__actions">
@@ -97,7 +229,7 @@ function onSearch(event) {
           </svg>
           <span v-if="wishlistCount" class="badge">{{ wishlistCount }}</span>
         </span>
-        <span class="icon-btn" aria-label="Cart">
+        <router-link to="/cart" class="icon-btn" aria-label="Cart">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path
               d="M6 6h15l-1.5 9H8L6 6zm0 0L5 3H2"
@@ -111,7 +243,7 @@ function onSearch(event) {
             <circle cx="18" cy="20" r="1.4" fill="currentColor" />
           </svg>
           <span v-if="cartCount" class="badge">{{ cartCount }}</span>
-        </span>
+        </router-link>
       </div>
 
       <nav class="nav-desktop" aria-label="Categories">

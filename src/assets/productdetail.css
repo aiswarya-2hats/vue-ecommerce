@@ -1,0 +1,362 @@
+.detail-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+.detail-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.detail-page__back:hover {
+  color: var(--accent);
+}
+
+.detail-page__status {
+  color: var(--ink-soft);
+  padding: 2rem 0;
+}
+
+.detail-page__status--error {
+  color: var(--danger);
+}
+
+.detail {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.detail__gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail__main-image {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  aspect-ratio: 1 / 1;
+}
+
+.detail__main-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1rem;
+}
+
+.detail__wish {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(18, 18, 18, 0.08);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-soft);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(18, 18, 18, 0.12);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.detail__wish svg {
+  display: block;
+}
+
+.detail__wish svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  transition:
+    fill 0.2s ease,
+    stroke 0.2s ease;
+}
+
+.detail__wish:hover,
+.detail__wish:focus-visible,
+.detail__wish--active {
+  color: var(--wish);
+  background: var(--wish-soft);
+  border-color: rgba(196, 49, 75, 0.25);
+  outline: none;
+}
+
+.detail__wish:hover svg path,
+.detail__wish:focus-visible svg path,
+.detail__wish--active svg path {
+  fill: currentColor;
+}
+
+.detail__thumbs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.detail__thumb {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.detail__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail__thumb:hover,
+.detail__thumb--active {
+  border-color: var(--accent);
+}
+
+.detail__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.detail__brand {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.detail__title {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.detail__stars {
+  color: var(--star);
+  letter-spacing: 0.04em;
+}
+
+.detail__category {
+  text-transform: capitalize;
+}
+
+.detail__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.detail__price {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.detail__original {
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+.detail__discount {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.detail__stock {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.detail__stock--out {
+  color: var(--wish);
+}
+
+.detail__desc {
+  margin: 0.35rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.detail__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.detail__qty {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail__qty .qty__btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  font: inherit;
+}
+
+.detail__qty .qty__btn:hover:not(:disabled) {
+  background: var(--bg-muted);
+  color: var(--accent);
+}
+
+.detail__qty .qty__btn:disabled {
+  color: var(--ink-soft);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.detail__qty .qty__value {
+  min-width: 2.25rem;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.detail__btns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail__btns .btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+
+.detail__specs {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+}
+
+.detail__specs li {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+}
+
+.detail__specs dt,
+.detail__spec-label {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.detail__specs dd,
+.detail__spec-value {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+@media (min-width: 640px) {
+  .detail__btns {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 768px) {
+  .detail-page {
+    padding: 1.75rem 1.5rem 3.5rem;
+  }
+
+  .detail {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .detail__title {
+    font-size: 1.85rem;
+  }
+
+  .detail__gallery {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .detail {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 2.5rem;
+  }
+
+  .detail__thumb {
+    width: 72px;
+    height: 72px;
+  }
+}

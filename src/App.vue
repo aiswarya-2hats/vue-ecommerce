@@ -1,4 +1,6 @@
 <script setup>
+import { Toaster } from 'vue-sonner'
+import 'vue-sonner/style.css'
 import Footer from './components/layout/Footer.vue'
 import Header from './components/layout/Header.vue'
 </script>
@@ -10,5 +12,6 @@ import Header from './components/layout/Header.vue'
       <RouterView />
     </main>
     <Footer />
+    <Toaster position="top-right" richColors closeButton />
   </div>
 </template>

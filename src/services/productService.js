@@ -1,5 +1,11 @@
 const BASE_URL = 'https://dummyjson.com'
 
+export async function getProduct(id) {
+  const response = await fetch(`${BASE_URL}/products/${id}`)
+  if (!response.ok) return null
+  return response.json()
+}
+
 export async function getCategories() {
   // get categories from API
   const response = await fetch(`${BASE_URL}/products/category-list`)
