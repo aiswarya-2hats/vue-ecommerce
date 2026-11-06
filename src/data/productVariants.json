@@ -1,0 +1,99 @@
+[
+  {
+    "productId": 83,
+    "title": "Blue & Black Check Shirt",
+    "variants": [
+      {
+        "id": "83-s-navy",
+        "sku": "MEN-FAS-BLU-083-S-NVY",
+        "options": { "size": "S", "color": "Navy" },
+        "price": 29.99,
+        "stock": 10
+      },
+      {
+        "id": "83-m-navy",
+        "sku": "MEN-FAS-BLU-083-M-NVY",
+        "options": { "size": "M", "color": "Navy" },
+        "price": 29.99,
+        "stock": 15
+      },
+      {
+        "id": "83-l-black",
+        "sku": "MEN-FAS-BLU-083-L-BLK",
+        "options": { "size": "L", "color": "Black" },
+        "price": 31.99,
+        "stock": 8,
+        "image": "/images/black-check-shirt.png"
+      }
+    ]
+  },
+  {
+    "productId": 123,
+    "title": "iPhone 13 Pro",
+    "variants": [
+      {
+        "id": "123-128-graphite",
+        "sku": "SMA-APP-IPH-123-128-GRP",
+        "options": { "storage": "128GB", "color": "Graphite" },
+        "price": 1099.99,
+        "stock": 12
+      },
+      {
+        "id": "123-256-sierra",
+        "sku": "SMA-APP-IPH-123-256-SBL",
+        "options": { "storage": "256GB", "color": "Sierra Blue" },
+        "price": 1199.99,
+        "stock": 7
+      },
+      {
+        "id": "123-512-gold",
+        "sku": "SMA-APP-IPH-123-512-GLD",
+        "options": { "storage": "512GB", "color": "Gold" },
+        "price": 1399.99,
+        "stock": 3,
+        "image": "/images/gold-iphone13.png"
+      }
+    ]
+  },
+  {
+    "productId": 11,
+    "title": "Annibale Colombo Bed",
+    "variants": [
+      {
+        "id": "11-queen-oak",
+        "sku": "FUR-ANN-ANN-011-QN-OAK",
+        "options": { "size": "Queen", "finish": "Oak" },
+        "price": 1899.99,
+        "stock": 5
+      },
+      {
+        "id": "11-king-walnut",
+        "sku": "FUR-ANN-ANN-011-KG-WAL",
+        "options": { "size": "King", "finish": "Walnut" },
+        "price": 2199.99,
+        "stock": 2
+      }
+    ]
+  },
+  {
+    "productId": 4,
+    "title": "Red Lipstick",
+    "variants": [
+      {
+        "id": "4-matte-classic",
+        "sku": "BEA-CHI-LIP-004-MAT",
+        "options": { "finish": "Matte", "shade": "Classic Red" },
+        "price": 12.99,
+        "stock": 40
+      },
+      {
+        "id": "4-gloss-cherry",
+        "sku": "BEA-CHI-LIP-004-GLS",
+        "options": { "finish": "Gloss", "shade": "Cherry" },
+        "price": 13.99,
+        "stock": 25,
+        "image": "/images/cherry-red.png"
+      }
+    ]
+  }
+]

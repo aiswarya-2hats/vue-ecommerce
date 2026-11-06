@@ -1,8 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../pages/Home.vue'
-import ProductListingPage from '../pages/ProductListingPage.vue'
-import DetailPage from '../pages/DetailPage.vue'
-import CartPage from '../pages/CartPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -10,27 +6,35 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Home,
+      component: () => import('../pages/Home.vue'),
+      meta: { breadcrumb: 'Home' },
     },
     {
       path: '/products',
       name: 'products',
-      component: ProductListingPage,
+      component: () => import('../pages/ProductListingPage.vue'),
+      meta: { breadcrumb: 'Products' },
     },
     {
       path: '/products/:id',
       name: 'product-detail',
-      component: DetailPage,
+      component: () => import('../pages/DetailPage.vue'),
+      meta: {
+        breadcrumb: (route) => `Product ${route.params.id}`,
+        parent: { label: 'Products', path: '/products' },
+      },
     },
     {
       path: '/cart',
       name: 'cart',
-      component: CartPage,
+      component: () => import('../pages/CartPage.vue'),
+      meta: { breadcrumb: 'Cart' },
     },
     {
-      path: '/detail/:id',
-      name: 'detail',
-      component: DetailPage,
+      path: '/wishlist',
+      name: 'wishlist',
+      component: () => import('../pages/Wishlist.vue'),
+      meta: { breadcrumb: 'Wishlist' },
     },
   ],
 })

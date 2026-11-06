@@ -34,6 +34,71 @@
   background-position: center;
 }
 
+/* Dimmed overlay — opens only when palette icon is clicked */
+.product__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+  padding-bottom: 3rem;
+  background: rgb(18 18 18 / 78%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+}
+
+.product__overlay--open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.product__variants {
+  width: 100%;
+}
+
+.product__variants-toggle {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(18, 18, 18, 0.08);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(18, 18, 18, 0.12);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.product__variants-toggle:hover,
+.product__variants-toggle:focus-visible {
+  background: #fff;
+  transform: scale(1.06);
+  box-shadow: 0 3px 10px rgba(18, 18, 18, 0.18);
+  outline: none;
+}
+
+.product__variants-toggle--active {
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(18, 18, 18, 0.2);
+}
+
 .product__wish {
   position: absolute;
   top: 0.65rem;
@@ -117,6 +182,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
+  margin-bottom: 0.42rem;
 }
 
 .product__name {
@@ -124,10 +190,6 @@
   font-weight: 600;
   line-height: 1.35;
   color: var(--ink);
-}
-
-.product__brand {
-  margin-bottom: 0.42rem;
 }
 
 .product__original-price {
@@ -140,12 +202,12 @@
 }
 
 .product__price {
-  margin-top: auto;
   padding-top: 0.45rem;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
   display: flex;
+  flex-wrap: wrap;
   gap: 0.55rem;
 }
 
@@ -168,7 +230,7 @@
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  margin-top: 0.55rem;
+  margin-top: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;

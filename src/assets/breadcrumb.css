@@ -1,0 +1,21 @@
+.breadcrumb {
+  padding: 0px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.breadcrumb-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+.breadcrumb-item {
+  font-size: 0.9rem;
+}
+.separator {
+  margin: 0 0.5rem;
+  color: #ccc;
+}
+.active {
+  color: var(--accent);
+}

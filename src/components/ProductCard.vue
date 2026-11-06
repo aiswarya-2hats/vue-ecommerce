@@ -1,13 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useWishlist } from '../composables/useWishlist'
 import { useCart } from '../composables/useCart'
+import { useProductVariants } from '../composables/useProductVariants'
+import VariantPicker from './VariantPicker.vue'
 import '../assets/productcard.css'
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
 function navigateToDetail() {
-  router.push(`/detail/${props.id}`)
+  router.push(`/products/${props.id}`)
 }
 
 const props = defineProps({
@@ -19,31 +21,58 @@ const props = defineProps({
   price: { type: [Number, String], required: true },
   discount: { type: [Number, String], required: true },
   brand: { type: String, required: true },
+  variants: { type: Array, default: () => [] },
 })
 
 const { isWishlisted, toggle: toggleWishlist } = useWishlist()
-const { add: addToCart, getQty } = useCart()
+const { add: addToCart } = useCart()
 
 const wishlisted = computed(() => isWishlisted(props.id))
 const qty = ref(1)
+const variantsOpen = ref(false)
 
-// How many more can still be added (stock minus what's already in cart)
-const stockLeft = computed(() => Math.max(0, Number(props.stock) - getQty(props.id)))
-const canAdd = computed(() => stockLeft.value > 0 && qty.value <= stockLeft.value)
-
-const filledStars = computed(() => {
-  // compute the filled stars
-  const count = Math.round(Number(props.rating)) || 0 // round the rating to the nearest integer
-  const filled = Math.min(5, Math.max(0, count)) // limit the number of filled stars to 5
-  return '★'.repeat(filled) + '☆'.repeat(5 - filled) // return the filled stars and empty stars
+const {
+  selectedOptions,
+  hasVariants,
+  optionKeys,
+  selectedVariant,
+  displayPrice,
+  displayImage,
+  stockLeft,
+  canAdd,
+  optionValues,
+  selectOption,
+} = useProductVariants({
+  variants: () => props.variants,
+  productId: () => props.id,
+  basePrice: () => props.price,
+  baseStock: () => props.stock,
+  baseImage: () => props.image,
+  qty,
 })
 
-const hasDiscount = computed(() => Number(props.discount) > 0)
+function toggleVariants(e) {
+  e.preventDefault()
+  e.stopPropagation()
+  variantsOpen.value = !variantsOpen.value
+}
+
+function closeVariants() {
+  variantsOpen.value = false
+}
+
+const filledStars = computed(() => {
+  const count = Math.round(Number(props.rating)) || 0
+  const filled = Math.min(5, Math.max(0, count))
+  return '★'.repeat(filled) + '☆'.repeat(5 - filled)
+})
+
+const hasDiscount = computed(() => Math.round(Number(props.discount)) >= 1)
 
 const originalPrice = computed(() => {
   const pct = Number(props.discount)
-  if (pct <= 0) return Number(props.price)
-  return Number(props.price) / (1 - pct / 100)
+  if (pct <= 0) return displayPrice.value
+  return displayPrice.value / (1 - pct / 100)
 })
 
 function onToggleWish() {
@@ -60,7 +89,7 @@ function increaseQty() {
 
 function onAddToCart() {
   if (!canAdd.value) return
-  addToCart(props.id, qty.value)
+  addToCart(props.id, qty.value, selectedVariant.value)
 }
 </script>
 
@@ -68,8 +97,38 @@ function onAddToCart() {
   <article class="product">
     <div class="product__media">
       <router-link :to="`/products/${id}`" class="product__link">
-        <img :src="image" :alt="title" class="product__image" />
+        <img :src="displayImage" :alt="title" class="product__image" />
       </router-link>
+
+      <template v-if="hasVariants">
+        <div
+          class="product__overlay"
+          :class="{ 'product__overlay--open': variantsOpen }"
+          @click="closeVariants"
+        >
+          <div class="product__variants" @click.stop>
+            <VariantPicker
+              tone="overlay"
+              :option-keys="optionKeys"
+              :selected-options="selectedOptions"
+              :option-values="optionValues"
+              @select="selectOption"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="product__variants-toggle"
+          :class="{ 'product__variants-toggle--active': variantsOpen }"
+          :aria-label="variantsOpen ? 'Hide variants' : 'Show variants'"
+          :aria-expanded="variantsOpen"
+          @click="toggleVariants"
+        >
+          🎨
+        </button>
+      </template>
+
       <button
         type="button"
         class="product__wish"
@@ -95,6 +154,7 @@ function onAddToCart() {
         </svg>
       </button>
     </div>
+
     <div class="product__body">
       <span class="product__brand">{{ brand }}</span>
       <h3 class="product__name">
@@ -103,13 +163,15 @@ function onAddToCart() {
       <p class="product__rating">
         <span class="stars">{{ filledStars }}</span> ({{ rating }})
       </p>
+
       <p class="product__price">
-        ${{ Number(price).toFixed(2) }}
+        ${{ displayPrice.toFixed(2) }}
         <template v-if="hasDiscount">
           <s class="product__original-price">${{ originalPrice.toFixed(2) }}</s>
           <span class="product__discount">{{ Number(discount).toFixed(0) }}% off</span>
         </template>
       </p>
+
       <p v-if="stockLeft > 0" class="product__brand">Stock: {{ stockLeft }}</p>
       <p v-else class="product__stock-msg">Out of stock</p>
 

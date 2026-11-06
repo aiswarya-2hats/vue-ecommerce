@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Filter from './Filter.vue'
 import ProductCard from './ProductCard.vue'
 import ProductSort from './ProductSort.vue'
-import { getProducts, getCategories } from '../services/productService'
+import { getProducts, getCategories, getVariantsForProduct } from '../services/productService'
 import '../assets/productlisting.css'
 
 const route = useRoute()
@@ -67,9 +67,6 @@ const filteredProducts = computed(() => {
 const activeFilters = computed(() => {
   const chips = [] // create a new array to store the active filters
 
-  if (searchQuery.value) {
-    chips.push({ key: 'q', label: `Search: ${searchQuery.value}`, type: 'q' }) // add the search query filter to the array
-  }
   if (selectedCategory.value) {
     chips.push({
       // add the category filter to the array
@@ -182,8 +179,7 @@ function setSort(value) {
 
 function removeFilter(chip) {
   //remove individual filter by resetting the query string in the URL
-  if (chip.type === 'q') updateQuery({ q: '' })
-  else if (chip.type === 'category') setCategory('')
+  if (chip.type === 'category') setCategory('')
   else if (chip.type === 'brand') setBrands(selectedBrands.value.filter((b) => b !== chip.value))
   else if (chip.type === 'rating') setRating(null)
   else if (chip.type === 'inStock') setInStock(false)
@@ -191,9 +187,8 @@ function removeFilter(chip) {
 }
 
 function clearAllFilters() {
-  // clear all filters by resetting the query string in the URL
+  // clear filter chips only — search stays in the header / URL
   updateQuery({
-    q: '',
     category: '',
     brand: '',
     rating: '',
@@ -206,7 +201,7 @@ function clearAllFilters() {
 async function fetchCategories() {
   try {
     const data = await getCategories()
-    categories.value = data.slice(0, 7)
+    categories.value = data
   } catch (err) {
     console.error(err)
   }
@@ -270,7 +265,12 @@ fetchCategories()
       @update:price="setPrice"
     />
     <section class="listing">
-      <ProductSort :sort="selectedSort" :heading="categoryHeading" @update:sort="setSort" />
+      <ProductSort
+        :sort="selectedSort"
+        :heading="categoryHeading"
+        :count="filteredProducts.length"
+        @update:sort="setSort"
+      />
 
       <div v-if="activeFilters.length" class="filter-chips" aria-label="Active filters">
         <span v-for="chip in activeFilters" :key="chip.key" class="filter-chip">
@@ -320,6 +320,7 @@ fetchCategories()
             :price="product.price"
             :discount="product.discountPercentage"
             :brand="product.brand"
+            :variants="getVariantsForProduct(product.id)"
           />
         </div>
         <div v-if="totalPages > 1" class="pagination">

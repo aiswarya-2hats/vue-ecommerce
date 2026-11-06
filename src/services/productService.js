@@ -1,4 +1,5 @@
 const BASE_URL = 'https://dummyjson.com'
+import variantsData from '../data/productVariants.json'
 
 export async function getProduct(id) {
   const response = await fetch(`${BASE_URL}/products/${id}`)
@@ -41,4 +42,9 @@ export async function getProducts({
   const response = await fetch(url) // fetch products from URL
   const data = await response.json()
   return data.products || [] // return products
+}
+
+//get variants for a product
+export function getVariantsForProduct(id) {
+  return variantsData.find((p) => p.productId === Number(id))?.variants || []
 }

@@ -6,14 +6,13 @@ import { useCart } from '../../composables/useCart'
 import { getProducts } from '../../services/productService'
 import '../../assets/header.css'
 
-const route = useRoute()
+const route = useRoute() //get information about the current page
 const router = useRouter()
 const { wishlistCount } = useWishlist()
 const { cartCount } = useCart()
 const searchText = ref(route.query.q || '')
-const suggestions = ref([])
+const suggestions = ref([]) //list of products that match the search query
 const isFocused = ref(false)
-const activeIndex = ref(-1)
 const hasSearched = ref(false)
 
 let searchTimer = null
@@ -28,48 +27,42 @@ watch(
 
 // Live suggestions once the query has at least 3 characters
 watch(searchText, (value) => {
-  clearTimeout(searchTimer)
+  clearTimeout(searchTimer) //clear the timeout if it exists
   const q = value.trim()
-  activeIndex.value = -1
   hasSearched.value = false
 
   if (q.length < 3) {
+    //if the query is less than 3 characters, clear the suggestions.no api call
     suggestions.value = []
     return
   }
 
   searchTimer = setTimeout(async () => {
-    suggestions.value = await getProducts({ q, limit: 6 })
-    activeIndex.value = -1
+    suggestions.value = await getProducts({ q, limit: 0 })
     hasSearched.value = true
   }, 250)
 })
 
 function closeDropdown() {
   isFocused.value = false
-  activeIndex.value = -1
 }
 
 function onSearch(event) {
-  event.preventDefault() //prevent page fully reloading when search is submitted
-
-  // Enter with a highlighted suggestion → open that product
-  if (activeIndex.value >= 0 && suggestions.value[activeIndex.value]) {
-    goToProduct(suggestions.value[activeIndex.value].id)
-    return
-  }
-
+  event.preventDefault()
   closeDropdown()
-  const q = searchText.value.trim() // remove spaces at strat/end
-  const query = { ...route.query } //keep other url params
+
+  clearTimeout(searchTimer) // stop the pending suggestions call
+  suggestions.value = []
+
+  const q = searchText.value.trim()
 
   if (q) {
-    query.q = q // if we type something , put in in URL as q
+    router.push({ path: '/products', query: { q } })
   } else {
-    delete query.q //if empty remove search from URL
+    const query = { ...route.query }
+    delete query.q
+    router.push({ path: '/products', query })
   }
-
-  router.push({ path: '/products', query }) // goto /products with that search query
 }
 
 function goToProduct(id) {
@@ -87,28 +80,8 @@ function onBlur() {
 function clearSearch() {
   searchText.value = ''
   suggestions.value = []
-  activeIndex.value = -1
   hasSearched.value = false
   isFocused.value = true
-}
-
-function onSearchKeydown(event) {
-  if (!suggestions.value.length) return
-
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    isFocused.value = true
-    activeIndex.value = (activeIndex.value + 1) % suggestions.value.length
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    isFocused.value = true
-    activeIndex.value =
-      activeIndex.value <= 0 ? suggestions.value.length - 1 : activeIndex.value - 1
-  } else if (event.key === 'Escape') {
-    event.preventDefault()
-    closeDropdown()
-    suggestions.value = []
-  }
 }
 </script>
 
@@ -135,12 +108,8 @@ function onSearchKeydown(event) {
           role="combobox"
           aria-autocomplete="list"
           :aria-expanded="isFocused && suggestions.length > 0"
-          :aria-activedescendant="
-            activeIndex >= 0 ? `search-option-${suggestions[activeIndex]?.id}` : undefined
-          "
           @focus="isFocused = true"
           @blur="onBlur"
-          @keydown="onSearchKeydown"
         />
         <button
           v-if="searchText.trim()"
@@ -179,21 +148,19 @@ function onSearchKeydown(event) {
         >
           <li v-if="!suggestions.length" class="search__empty">No products found</li>
           <li
-            v-for="(product, index) in suggestions"
-            :id="`search-option-${product.id}`"
+            v-for="product in suggestions"
             :key="product.id"
             class="search__option"
-            :class="{ 'search__option--active': index === activeIndex }"
             role="option"
-            :aria-selected="index === activeIndex"
             @mousedown.prevent="goToProduct(product.id)"
-            @mouseenter="activeIndex = index"
           >
             <img :src="product.thumbnail" :alt="product.title" class="search__thumb" />
             <span class="search__meta">
               <span class="search__title">{{ product.title }}</span>
-              <span class="search__price">${{ product.price }}</span>
             </span>
+          </li>
+          <li class="search__view-all">
+            <button type="button" @mousedown.prevent="onSearch($event)">View all products →</button>
           </li>
         </ul>
       </form>
@@ -211,7 +178,7 @@ function onSearchKeydown(event) {
             />
           </svg>
         </a>
-        <span class="icon-btn" aria-label="Wishlist">
+        <router-link to="/wishlist" class="icon-btn" aria-label="Wishlist">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="18"
@@ -228,7 +195,7 @@ function onSearchKeydown(event) {
             />
           </svg>
           <span v-if="wishlistCount" class="badge">{{ wishlistCount }}</span>
-        </span>
+        </router-link>
         <router-link to="/cart" class="icon-btn" aria-label="Cart">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path

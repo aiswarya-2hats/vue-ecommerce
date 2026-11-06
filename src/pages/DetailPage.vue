@@ -1,16 +1,19 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getProduct } from '../services/productService'
+import { getProduct, getVariantsForProduct } from '../services/productService'
 import { useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
+import { useProductVariants } from '../composables/useProductVariants'
+import VariantPicker from '../components/VariantPicker.vue'
 import '../assets/productdetail.css'
 
 const route = useRoute()
-const { add: addToCart, getQty } = useCart()
+const { add: addToCart } = useCart()
 const { isWishlisted, toggle: toggleWishlist } = useWishlist()
 
 const product = ref(null)
+const variants = ref([])
 const loading = ref(true)
 const error = ref(null)
 const activeImage = ref('')
@@ -18,20 +21,33 @@ const qty = ref(1)
 
 const wishlisted = computed(() => product.value && isWishlisted(product.value.id))
 
-const stockLeft = computed(() => {
-  if (!product.value) return 0
-  return Math.max(0, Number(product.value.stock) - getQty(product.value.id))
+const {
+  selectedOptions,
+  hasVariants,
+  optionKeys,
+  selectedVariant,
+  displayPrice,
+  stockLeft,
+  canAdd,
+  optionValues,
+  selectOption,
+  resetToFirst,
+} = useProductVariants({
+  variants,
+  productId: () => product.value?.id,
+  basePrice: () => product.value?.price,
+  baseStock: () => product.value?.stock,
+  baseImage: () => product.value?.images?.[0] || product.value?.thumbnail || '',
+  qty,
 })
 
-const canAdd = computed(() => stockLeft.value > 0 && qty.value <= stockLeft.value)
-
-const hasDiscount = computed(() => Number(product.value?.discountPercentage) > 0)
+const hasDiscount = computed(() => Math.round(Number(product.value?.discountPercentage)) >= 1)
 
 const originalPrice = computed(() => {
   if (!product.value) return 0
   const pct = Number(product.value.discountPercentage)
-  if (pct <= 0) return Number(product.value.price)
-  return Number(product.value.price) / (1 - pct / 100)
+  if (pct <= 0) return displayPrice.value
+  return displayPrice.value / (1 - pct / 100)
 })
 
 const filledStars = computed(() => {
@@ -52,6 +68,7 @@ async function loadProduct(id) {
   loading.value = true
   error.value = null
   product.value = null
+  variants.value = []
   qty.value = 1
   activeImage.value = ''
 
@@ -62,7 +79,9 @@ async function loadProduct(id) {
       return
     }
     product.value = data
-    activeImage.value = data.thumbnail || data.images?.[0] || ''
+    variants.value = getVariantsForProduct(id)
+    resetToFirst()
+    activeImage.value = selectedVariant.value?.image || data.images?.[0] || data.thumbnail || ''
   } catch {
     error.value = 'Could not load this product.'
   } finally {
@@ -78,6 +97,10 @@ watch(
   { immediate: true },
 )
 
+watch(selectedVariant, (variant) => {
+  if (variant?.image) activeImage.value = variant.image
+})
+
 function selectImage(src) {
   activeImage.value = src
 }
@@ -92,7 +115,7 @@ function increaseQty() {
 
 function onAddToCart() {
   if (!canAdd.value || !product.value) return
-  addToCart(product.value.id, qty.value)
+  addToCart(product.value.id, qty.value, selectedVariant.value)
 }
 
 function onToggleWish() {
@@ -156,15 +179,15 @@ function onToggleWish() {
       <div class="detail__info">
         <p v-if="product.brand" class="detail__brand">{{ product.brand }}</p>
         <h1 class="detail__title">{{ product.title }}</h1>
+        <span v-if="product.category" class="detail__category">{{ product.category }}</span>
 
         <div class="detail__meta">
           <span class="detail__stars" aria-hidden="true">{{ filledStars }}</span>
           <span>({{ product.rating }})</span>
-          <span v-if="product.category" class="detail__category">{{ product.category }}</span>
         </div>
 
         <div class="detail__price-row">
-          <span class="detail__price">${{ Number(product.price).toFixed(2) }}</span>
+          <span class="detail__price">${{ displayPrice.toFixed(2) }}</span>
           <template v-if="hasDiscount">
             <s class="detail__original">${{ originalPrice.toFixed(2) }}</s>
             <span class="detail__discount"
@@ -176,15 +199,24 @@ function onToggleWish() {
         <p v-if="stockLeft > 0" class="detail__stock">In stock · {{ stockLeft }} available</p>
         <p v-else class="detail__stock detail__stock--out">Out of stock</p>
 
+        <div v-if="hasVariants" class="detail__variants">
+          <VariantPicker
+            :option-keys="optionKeys"
+            :selected-options="selectedOptions"
+            :option-values="optionValues"
+            @select="selectOption"
+          />
+        </div>
+
         <p v-if="product.description" class="detail__desc">{{ product.description }}</p>
 
         <ul
           v-if="product.sku || product.warrantyInformation || product.shippingInformation"
           class="detail__specs"
         >
-          <li v-if="product.sku">
+          <li v-if="selectedVariant?.sku || product.sku">
             <span class="detail__spec-label">SKU</span>
-            <span class="detail__spec-value">{{ product.sku }}</span>
+            <span class="detail__spec-value">{{ selectedVariant?.sku || product.sku }}</span>
           </li>
           <li v-if="product.warrantyInformation">
             <span class="detail__spec-label">Warranty</span>

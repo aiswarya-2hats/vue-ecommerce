@@ -47,3 +47,10 @@
   font-weight: 600;
   color: var(--ink);
 }
+
+.listing__toolbar-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
