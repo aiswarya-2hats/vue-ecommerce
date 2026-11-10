@@ -370,11 +370,20 @@ fetchCategories()
         />
       </div>
 
-      <div v-if="loading" class="products">
+      <div v-if="loading" class="products" aria-busy="true" aria-label="Loading products">
         <div v-for="n in 8" :key="n" class="skeleton-card">
           <div class="skeleton-card__image"></div>
-          <div class="skeleton-card__line"></div>
-          <div class="skeleton-card__line short"></div>
+          <div class="skeleton-card__body">
+            <div class="skeleton-card__line short"></div>
+            <div class="skeleton-card__line title"></div>
+            <div class="skeleton-card__line short"></div>
+            <div class="skeleton-card__line price"></div>
+            <div class="skeleton-card__actions">
+              <div class="skeleton-card__btn"></div>
+              <div class="skeleton-card__btn"></div>
+              <div class="skeleton-card__btn"></div>
+            </div>
+          </div>
         </div>
       </div>
       <RequestError v-else-if="error" :message="error" @retry="fetchProducts" />
