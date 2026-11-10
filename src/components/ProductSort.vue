@@ -2,7 +2,7 @@
 import '../assets/productsort.css'
 
 defineProps({
-  sort: { type: String, default: 'price-asc' },
+  sort: { type: String, default: 'featured' },
   heading: { type: String, default: 'All products' },
   count: { type: Number, default: 0 },
 })
@@ -17,15 +17,18 @@ function onSortChange(event) {
 
 <template>
   <div class="listing__toolbar">
-    <h1 class="listing__heading">{{ heading }}</h1>
     <div class="listing__toolbar-right">
       <p class="listing__count">{{ count }} products</p>
       <label class="sort">
         <select :value="sort" @change="onSortChange">
+          <option value="featured">Featured</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
           <option value="name">Name</option>
+          <option value="rating-desc">Customer Rating (High to Low)</option>
           <option value="best-selling">Best Selling</option>
+          <option value="discount-desc">Biggest Discount</option>
+          <option value="newest">Newest</option>
         </select>
       </label>
     </div>

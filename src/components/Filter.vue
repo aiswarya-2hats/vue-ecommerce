@@ -51,6 +51,7 @@ function onInStockChange(checked) {
 <template>
   <aside class="filters" aria-label="Product filters">
     <input type="checkbox" id="filter-toggle" class="filter-toggle" hidden />
+
     <label for="filter-toggle" class="filters__toggle">
       <span class="filters__toggle-text">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -64,13 +65,17 @@ function onInStockChange(checked) {
         </svg>
         Filters
       </span>
-      <span class="filters__chevron" aria-hidden="true"></span>
     </label>
 
-    <div class="filters__panel">
-      <div class="filters__panel-inner">
-        <h2 class="filters__title">Filters</h2>
+    <label for="filter-toggle" class="filters__overlay" aria-hidden="true"></label>
 
+    <div class="filters__panel">
+      <div class="filters__panel-head">
+        <h2 class="filters__title">Filters</h2>
+        <label for="filter-toggle" class="filters__close" aria-label="Close filters">&times;</label>
+      </div>
+
+      <div class="filters__panel-inner">
         <PriceRange
           :min-price="minPrice"
           :max-price="maxPrice"

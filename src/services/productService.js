@@ -3,13 +3,19 @@ import variantsData from '../data/productVariants.json'
 
 export async function getProduct(id) {
   const response = await fetch(`${BASE_URL}/products/${id}`)
-  if (!response.ok) return null
+  if (response.status === 404) return null
+  if (!response.ok) {
+    throw new Error(`Failed to load product (${response.status})`)
+  }
   return response.json()
 }
 
 export async function getCategories() {
   // get categories from API
   const response = await fetch(`${BASE_URL}/products/category-list`)
+  if (!response.ok) {
+    throw new Error(`Failed to load categories (${response.status})`)
+  }
   return response.json()
 }
 
@@ -39,9 +45,19 @@ export async function getProducts({
     url = `${BASE_URL}/products?${params}` // if no search or category, add to URL
   }
 
-  const response = await fetch(url) // fetch products from URL
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to load products (${response.status})`)
+  }
   const data = await response.json()
-  return data.products || [] // return products
+  const products = data.products || []
+
+  if (q) {
+    const needle = q.toLowerCase() // convert search query to lowercase
+    return products.filter((p) => p.title?.toLowerCase().includes(needle)) // filter products by title
+  }
+
+  return products
 }
 
 //get variants for a product

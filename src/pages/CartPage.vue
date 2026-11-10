@@ -2,11 +2,15 @@
 import { ref, watch, computed } from 'vue'
 import { useCart } from '../composables/useCart'
 import { getProduct } from '../services/productService'
+import ProductImage from '../components/ProductImage.vue'
+import RequestError from '../components/RequestError.vue'
+import { primaryProductImage } from '../utils/productImage'
 import '../assets/cart.css'
 
 const { cartItems, setQty, remove, clear } = useCart()
 const products = ref({})
 const loading = ref(cartItems.value.length > 0)
+const error = ref(null)
 
 const lines = computed(() =>
   cartItems.value.map((item) => ({
@@ -22,12 +26,17 @@ const total = computed(() =>
   }, 0),
 )
 
-async function loadProducts() {
+async function fetchProducts() {
   const ids = cartItems.value.map((item) => item.id)
   const missing = ids.filter((id) => !products.value[id])
-  if (!missing.length) return
+  if (!missing.length) {
+    loading.value = false
+    return
+  }
 
   loading.value = true
+  error.value = null
+
   try {
     const results = await Promise.all(missing.map((id) => getProduct(id)))
     const next = { ...products.value }
@@ -35,12 +44,15 @@ async function loadProducts() {
       if (product) next[missing[i]] = product
     })
     products.value = next
+  } catch (err) {
+    error.value = 'We couldn’t load your cart. Check your connection and try again.'
+    console.error(err)
   } finally {
     loading.value = false
   }
 }
 
-watch(cartItems, loadProducts, { immediate: true, deep: true })
+watch(cartItems, fetchProducts, { immediate: true, deep: true })
 
 function decrease(id, qty, variantId) {
   setQty(id, qty - 1, variantId)
@@ -52,6 +64,11 @@ function increase(id, qty, variantId) {
 
 function lineKey(line) {
   return `${line.id}-${line.variantId || 'default'}`
+}
+
+function productLink(line) {
+  if (!line.variantId) return `/products/${line.id}`
+  return { path: `/products/${line.id}`, query: { variant: line.variantId } }
 }
 </script>
 
@@ -75,17 +92,24 @@ function lineKey(line) {
       </li>
     </ul>
     <p v-else-if="!cartItems.length" class="cart-page__empty">Your cart is empty.</p>
+    <RequestError v-else-if="error" :message="error" @retry="fetchProducts" />
 
     <ul v-else class="cart-list">
       <li v-for="line in lines" :key="lineKey(line)" class="cart-line">
-        <img
-          v-if="line.product || line.image"
-          class="cart-line__image"
-          :src="line.image || line.product?.thumbnail || line.product?.images?.[0]"
-          :alt="line.product?.title || `Product #${line.id}`"
-        />
+        <router-link :to="productLink(line)" class="cart-line__media">
+          <ProductImage
+            v-if="line.product || line.image"
+            img-class="cart-line__image"
+            :src="line.image || primaryProductImage(line.product)"
+            :alt="line.product?.title || `Product #${line.id}`"
+          />
+        </router-link>
         <div class="cart-line__body">
-          <h2 class="cart-line__title">{{ line.product?.title || `Product #${line.id}` }}</h2>
+          <h2 class="cart-line__title">
+            <router-link :to="productLink(line)">
+              {{ line.product?.title || `Product #${line.id}` }}
+            </router-link>
+          </h2>
           <p v-if="line.options" class="cart-line__variant">
             {{ Object.values(line.options).join(' · ') }}
           </p>

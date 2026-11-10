@@ -1,9 +1,11 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWishlist } from '../../composables/useWishlist'
 import { useCart } from '../../composables/useCart'
 import { getProducts } from '../../services/productService'
+import ProductImage from '../ProductImage.vue'
+import { primaryProductImage } from '../../utils/productImage'
 import '../../assets/header.css'
 
 const route = useRoute() //get information about the current page
@@ -14,8 +16,11 @@ const searchText = ref(route.query.q || '')
 const suggestions = ref([]) //list of products that match the search query
 const isFocused = ref(false)
 const hasSearched = ref(false)
+const searchOpen = ref(false)
+const searchInput = ref(null)
 
 let searchTimer = null
+let searchRequestId = 0
 
 // Keep the search box in sync when the URL changes (e.g. browser back/forward)
 watch(
@@ -33,23 +38,45 @@ watch(searchText, (value) => {
 
   if (q.length < 3) {
     //if the query is less than 3 characters, clear the suggestions.no api call
+    searchRequestId++ // invalidate any in-flight request
     suggestions.value = []
     return
   }
 
   searchTimer = setTimeout(async () => {
-    suggestions.value = await getProducts({ q, limit: 0 })
+    const requestId = ++searchRequestId
+    const results = await getProducts({ q, limit: 0 })
+
+    // ignore older responses so they cannot overwrite newer results
+    if (requestId !== searchRequestId) return
+
+    suggestions.value = results
     hasSearched.value = true
-  }, 250)
+  }, 500)
 })
 
 function closeDropdown() {
   isFocused.value = false
 }
 
+function closeMobileSearch() {
+  searchOpen.value = false
+  closeDropdown()
+}
+
+async function toggleSearch() {
+  searchOpen.value = !searchOpen.value
+  if (!searchOpen.value) {
+    closeDropdown()
+    return
+  }
+  await nextTick()
+  searchInput.value?.focus()
+}
+
 function onSearch(event) {
   event.preventDefault()
-  closeDropdown()
+  closeMobileSearch()
 
   clearTimeout(searchTimer) // stop the pending suggestions call
   suggestions.value = []
@@ -66,7 +93,7 @@ function onSearch(event) {
 }
 
 function goToProduct(id) {
-  closeDropdown()
+  closeMobileSearch()
   searchText.value = ''
   suggestions.value = []
   router.push(`/products/${id}`)
@@ -82,6 +109,12 @@ function clearSearch() {
   suggestions.value = []
   hasSearched.value = false
   isFocused.value = true
+
+  if (route.query.q) {
+    const query = { ...route.query } // keep other query parameters
+    delete query.q // remove the search query only
+    router.push({ path: route.path, query }) // push the updated query to the current path
+  }
 }
 </script>
 
@@ -97,75 +130,113 @@ function clearSearch() {
 
       <a href="/" class="logo">Nova<span>Shop</span></a>
 
-      <form class="search" @submit="onSearch">
-        <input
-          v-model="searchText"
-          type="text"
-          class="search__input"
-          placeholder="Search products..."
-          aria-label="Search products"
-          autocomplete="off"
-          role="combobox"
-          aria-autocomplete="list"
-          :aria-expanded="isFocused && suggestions.length > 0"
-          @focus="isFocused = true"
-          @blur="onBlur"
-        />
-        <button
-          v-if="searchText.trim()"
-          type="button"
-          class="search__btn"
-          aria-label="Clear search"
-          @click="clearSearch"
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path
-              d="M6 6l12 12M18 6L6 18"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
+      <div class="search-panel" :class="{ 'search-panel--open': searchOpen }">
+        <div class="search-panel__inner">
+          <form class="search" @submit="onSearch">
+            <input
+              ref="searchInput"
+              v-model="searchText"
+              type="text"
+              class="search__input"
+              placeholder="Search products..."
+              aria-label="Search products"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              :aria-expanded="isFocused && suggestions.length > 0"
+              @focus="isFocused = true"
+              @blur="onBlur"
             />
-          </svg>
-        </button>
-        <button v-else type="submit" class="search__btn" aria-label="Search">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+            <button
+              v-if="searchText.trim()"
+              type="button"
+              class="search__btn"
+              aria-label="Clear search"
+              @click="clearSearch"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path
+                  d="M6 6l12 12M18 6L6 18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+            <button v-else type="submit" class="search__btn" aria-label="Search">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M20 20l-3.5-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+
+            <ul
+              v-if="isFocused && (suggestions.length || hasSearched)"
+              class="search__dropdown"
+              role="listbox"
+            >
+              <li v-if="!suggestions.length" class="search__empty">No products found</li>
+              <li
+                v-for="product in suggestions"
+                :key="product.id"
+                class="search__option"
+                role="option"
+                @mousedown.prevent="goToProduct(product.id)"
+              >
+                <ProductImage
+                  :src="primaryProductImage(product)"
+                  :alt="product.title"
+                  img-class="search__thumb"
+                />
+                <span class="search__meta">
+                  <span class="search__title">{{ product.title }}</span>
+                </span>
+              </li>
+              <li v-if="suggestions.length" class="search__view-all">
+                <button type="button" @mousedown.prevent="onSearch($event)">
+                  View all products →
+                </button>
+              </li>
+            </ul>
+          </form>
+        </div>
+      </div>
+
+      <div class="header__actions">
+        <button
+          type="button"
+          class="icon-btn search-toggle"
+          :aria-label="searchOpen ? 'Close search' : 'Open search'"
+          :aria-expanded="searchOpen"
+          @click="toggleSearch"
+        >
+          <svg v-if="!searchOpen" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
             <path
               d="M20 20l-3.5-3.5"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+          <svg v-else viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path
+              d="M6 6l12 12M18 6L6 18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
               stroke-linecap="round"
             />
           </svg>
         </button>
-
-        <ul
-          v-if="isFocused && (suggestions.length || hasSearched)"
-          class="search__dropdown"
-          role="listbox"
-        >
-          <li v-if="!suggestions.length" class="search__empty">No products found</li>
-          <li
-            v-for="product in suggestions"
-            :key="product.id"
-            class="search__option"
-            role="option"
-            @mousedown.prevent="goToProduct(product.id)"
-          >
-            <img :src="product.thumbnail" :alt="product.title" class="search__thumb" />
-            <span class="search__meta">
-              <span class="search__title">{{ product.title }}</span>
-            </span>
-          </li>
-          <li class="search__view-all">
-            <button type="button" @mousedown.prevent="onSearch($event)">View all products →</button>
-          </li>
-        </ul>
-      </form>
-
-      <div class="header__actions">
         <a href="#" class="icon-btn" aria-label="Account">
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8" />

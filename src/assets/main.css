@@ -1,11 +1,18 @@
 @import './base.css';
 @import './buttons.css';
+@import './typohraphy.css';
+@import './requesterror.css';
 
 #app {
   width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  overflow-x: clip;
   margin: 0;
   padding: 0;
   font-weight: normal;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -15,14 +22,21 @@ a {
 }
 
 .main {
+  flex: 1 0 auto;
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 1.25rem;
+  min-height: 70vh;
 }
 
 .layout {
   display: grid;
   gap: 1.5rem;
+}
+
+.section-gap {
+  padding-bottom: 94px;
 }
 
 @media (min-width: 1024px) {

@@ -1,7 +1,14 @@
 .breadcrumb {
-  padding: 0px 24px;
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
+  padding: 0 1.25rem; /* same as .main */
+}
+
+@media (min-width: 1024px) {
+  .breadcrumb {
+    padding: 0 1.5rem; /* same as .main at desktop */
+  }
 }
 .breadcrumb-list {
   display: flex;

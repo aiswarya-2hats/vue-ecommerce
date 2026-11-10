@@ -5,12 +5,10 @@ import { useWishlist } from '../composables/useWishlist'
 import { useCart } from '../composables/useCart'
 import { useProductVariants } from '../composables/useProductVariants'
 import VariantPicker from './VariantPicker.vue'
+import ProductImage from './ProductImage.vue'
 import '../assets/productcard.css'
 
 const router = useRouter()
-function navigateToDetail() {
-  router.push(`/products/${props.id}`)
-}
 
 const props = defineProps({
   id: { type: [Number, String], required: true },
@@ -22,12 +20,13 @@ const props = defineProps({
   discount: { type: [Number, String], required: true },
   brand: { type: String, required: true },
   variants: { type: Array, default: () => [] },
+  preferredVariantId: { type: [String, Number], default: null },
+  removable: { type: Boolean, default: false },
 })
 
-const { isWishlisted, toggle: toggleWishlist } = useWishlist()
+const { isWishlisted, toggle: toggleWishlist, remove: removeWishlist } = useWishlist()
 const { add: addToCart } = useCart()
 
-const wishlisted = computed(() => isWishlisted(props.id))
 const qty = ref(1)
 const variantsOpen = ref(false)
 
@@ -49,7 +48,19 @@ const {
   baseStock: () => props.stock,
   baseImage: () => props.image,
   qty,
+  preferredVariantId: () => props.preferredVariantId,
 })
+
+const wishlisted = computed(() => isWishlisted(props.id, selectedVariant.value?.id))
+
+const detailLink = computed(() => {
+  if (!selectedVariant.value?.id) return `/products/${props.id}`
+  return { path: `/products/${props.id}`, query: { variant: selectedVariant.value.id } }
+})
+
+function navigateToDetail() {
+  router.push(detailLink.value)
+}
 
 function toggleVariants(e) {
   e.preventDefault()
@@ -75,8 +86,12 @@ const originalPrice = computed(() => {
   return displayPrice.value / (1 - pct / 100)
 })
 
-function onToggleWish() {
-  toggleWishlist(props.id)
+function onWishAction() {
+  if (props.removable) {
+    removeWishlist(props.id, selectedVariant.value?.id ?? props.preferredVariantId)
+    return
+  }
+  toggleWishlist(props.id, selectedVariant.value)
 }
 
 function decreaseQty() {
@@ -96,8 +111,8 @@ function onAddToCart() {
 <template>
   <article class="product">
     <div class="product__media">
-      <router-link :to="`/products/${id}`" class="product__link">
-        <img :src="displayImage" :alt="title" class="product__image" />
+      <router-link :to="detailLink" class="product__link">
+        <ProductImage :src="displayImage" :alt="title" img-class="product__image" />
       </router-link>
 
       <template v-if="hasVariants">
@@ -132,12 +147,31 @@ function onAddToCart() {
       <button
         type="button"
         class="product__wish"
-        :class="{ 'product__wish--active': wishlisted }"
-        :aria-label="wishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
-        :aria-pressed="wishlisted"
-        @click="onToggleWish"
+        :class="{
+          'product__wish--active': !removable && wishlisted,
+          'product__wish--remove': removable,
+        }"
+        :aria-label="removable || wishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
+        :aria-pressed="removable ? undefined : wishlisted"
+        @click="onWishAction"
       >
         <svg
+          v-if="removable"
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+        <svg
+          v-else
           xmlns="http://www.w3.org/2000/svg"
           width="18"
           height="18"
@@ -158,7 +192,7 @@ function onAddToCart() {
     <div class="product__body">
       <span class="product__brand">{{ brand }}</span>
       <h3 class="product__name">
-        <router-link :to="`/products/${id}`" class="product__link">{{ title }}</router-link>
+        <router-link :to="detailLink" class="product__link">{{ title }}</router-link>
       </h3>
       <p class="product__rating">
         <span class="stars">{{ filledStars }}</span> ({{ rating }})

@@ -1,16 +1,14 @@
 <script setup>
-import '../assets/home.css'
-import ProductListing from '@/components/ProductListing.vue'
+import Banner from '@/components/Banner.vue'
+import Categoryslider from '@/components/Categoryslider.vue'
+import ProductSlider from '@/components/ProductSlider.vue'
+
+const FeaturedProducts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 </script>
 
 <template>
-  <div class="home">
-    <div class="home__banner">
-      <a href="/products" class="home__banner-slide">
-        <img src="../assets/images/beauty.jpeg" alt="Beauty picks" />
-        <div class="home__banner-content"></div>
-        <h2>Beauty picks</h2>
-      </a>
-    </div>
-  </div>
+  <Banner />
+  <ProductSlider :productIds="FeaturedProducts" />
+  <Categoryslider category="home-decoration" title="Home decor" :limit="5" />
+  <Categoryslider category="furniture" title="Furniture" :limit="5" />
 </template>

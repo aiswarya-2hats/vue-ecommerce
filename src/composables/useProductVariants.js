@@ -8,6 +8,7 @@ export function useProductVariants({
   baseStock = 0,
   baseImage = '',
   qty = null,
+  preferredVariantId = null,
 } = {}) {
   const { getQty } = useCart()
   const selectedOptions = ref({}) // the selected options
@@ -57,9 +58,17 @@ export function useProductVariants({
     selectedOptions.value = variant ? { ...variant.options } : {}
   }
 
-  function resetToFirst() {
-    syncOptionsFromVariant(variants.value[0] ?? null)
+  // Prefer ?variant=id when present, otherwise first variant
+  function selectVariantById(id) {
+    const match = id
+      ? variants.value.find((v) => String(v.id) === String(id))
+      : null
+    syncOptionsFromVariant(match || variants.value[0] || null)
     if (qty) qty.value = 1
+  }
+
+  function resetToFirst() {
+    selectVariantById(toValue(preferredVariantId))
   }
 
   function optionValues(key) {
@@ -82,9 +91,23 @@ export function useProductVariants({
 
   resetToFirst()
 
-  watch(variants, () => {
-    resetToFirst()
-  })
+  // Only reset when the variant *list* changes (e.g. new product) — not on option clicks
+  watch(
+    () => variants.value.map((v) => v.id).join('|'),
+    () => {
+      resetToFirst()
+    },
+  )
+
+  if (preferredVariantId != null) {
+    watch(
+      () => toValue(preferredVariantId),
+      (id, prev) => {
+        if (id === prev) return
+        selectVariantById(id)
+      },
+    )
+  }
 
   return {
     // return the computed properties and functions to parent component
@@ -99,6 +122,7 @@ export function useProductVariants({
     canAdd,
     optionValues,
     selectOption,
+    selectVariantById,
     resetToFirst,
     syncOptionsFromVariant,
   }

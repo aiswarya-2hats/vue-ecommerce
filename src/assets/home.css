@@ -28,62 +28,8 @@
   color: var(--ink-soft);
 }
 
-.home__cta {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 0.5rem;
-  padding: 0.75rem 1.35rem;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease,
-    box-shadow 0.2s ease;
-}
-
-.home__cta:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 3px 12px rgba(31, 107, 74, 0.28);
-}
-
-.home__cta:active {
-  transform: translateY(1px);
-}
-
 @media (min-width: 768px) {
   .home {
     justify-content: center;
   }
-}
-.home__banner {
-  width: 100%;
-  max-width: 1280px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.home__banner-slide {
-  position: relative;
-  display: block;
-}
-
-.home__banner-slide img {
-  width: 100%;
-  height: clamp(200px, 40vw, 520px);
-  object-fit: cover;
-  display: block;
-}
-
-.home__banner-slide h2 {
-  position: absolute;
-  left: 1.25rem;
-  bottom: 1.25rem;
-  margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  color: #fff;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
