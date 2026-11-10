@@ -209,29 +209,28 @@ function onAddToCart() {
       <p v-if="stockLeft > 0" class="product__brand">Stock: {{ stockLeft }}</p>
       <p v-else class="product__stock-msg">Out of stock</p>
 
-      <div class="qty">
-        <button
-          type="button"
-          class="qty__btn"
-          aria-label="Decrease quantity"
-          :disabled="qty <= 1"
-          @click="decreaseQty"
-        >
-          −
-        </button>
-        <span class="qty__value">{{ qty }}</span>
-        <button
-          type="button"
-          class="qty__btn"
-          aria-label="Increase quantity"
-          :disabled="qty >= stockLeft"
-          @click="increaseQty"
-        >
-          +
-        </button>
-      </div>
-
       <div class="product__actions">
+        <div class="qty">
+          <button
+            type="button"
+            class="qty__btn"
+            aria-label="Decrease quantity"
+            :disabled="qty <= 1"
+            @click="decreaseQty"
+          >
+            −
+          </button>
+          <span class="qty__value">{{ qty }}</span>
+          <button
+            type="button"
+            class="qty__btn"
+            aria-label="Increase quantity"
+            :disabled="qty >= stockLeft"
+            @click="increaseQty"
+          >
+            +
+          </button>
+        </div>
         <button type="button" class="btn btn--primary" @click="navigateToDetail">Buy Now</button>
         <button type="button" class="btn btn--secondary" :disabled="!canAdd" @click="onAddToCart">
           Add to Cart

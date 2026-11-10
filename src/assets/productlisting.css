@@ -103,6 +103,10 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+
+  @media (max-width: 384px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .pagination {

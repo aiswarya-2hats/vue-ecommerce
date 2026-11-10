@@ -19,8 +19,8 @@ function onSortChange(event) {
   <div class="listing__toolbar">
     <div class="listing__toolbar-right">
       <p class="listing__count">{{ count }} products</p>
-      <label class="sort">
-        <select :value="sort" @change="onSortChange">
+      <label class="sort" for="product-sort">
+        <select id="product-sort" aria-label="Sort by" :value="sort" @change="onSortChange">
           <option value="featured">Featured</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>

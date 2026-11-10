@@ -122,12 +122,12 @@ function clearSearch() {
   <header class="header">
     <div class="header__inner">
       <input type="checkbox" id="menu-toggle" class="menu-toggle" hidden />
-      <label for="menu-toggle" class="burger" aria-label="Open menu">
+      <label for="menu-toggle" class="burger">
+        <span class="visually-hidden">Open menu</span>
         <span></span>
         <span></span>
         <span></span>
       </label>
-
       <a href="/" class="logo">Nova<span>Shop</span></a>
 
       <div class="search-panel" :class="{ 'search-panel--open': searchOpen }">
@@ -294,7 +294,10 @@ function clearSearch() {
       <aside class="nav-drawer" aria-label="Mobile categories">
         <div class="nav-drawer__head">
           <span class="logo">Nova<span>Shop</span></span>
-          <label for="menu-toggle" class="nav-close" aria-label="Close menu">&times;</label>
+          <label for="menu-toggle" class="nav-close">
+            <span class="visually-hidden">Close menu</span>
+            <span aria-hidden="true">&times;</span>
+          </label>
         </div>
         <nav class="nav-drawer__links">
           <router-link to="/">Home</router-link>
