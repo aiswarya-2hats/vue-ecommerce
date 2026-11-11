@@ -200,7 +200,7 @@ function onAddToCart() {
             +
           </button>
         </div>
-        <button type="button" class="btn btn--primary" @click="navigateToDetail">Buy Now</button>
+        <button type="button" class="btn btn--primary" @click="navigateToDetail">Details</button>
         <button type="button" class="btn btn--secondary" :disabled="!canAdd" @click="onAddToCart">
           Add to Cart
         </button>
