@@ -233,6 +233,7 @@
 
 .product__original-price {
   color: var(--ink-soft);
+  font-size: var(--text-base);
 }
 
 .product__rating {
@@ -252,6 +253,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  align-items: center;
 }
 
 .product__discount {
