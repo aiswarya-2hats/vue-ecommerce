@@ -13,12 +13,12 @@
 
 .wishlist-page__head h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
 }
 
 .wishlist-page__count {
   margin: 0.15rem 0 0;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   color: var(--ink-soft);
 }
 
@@ -47,6 +47,10 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
+
+  @media (max-width: 384px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .wishlist-page__actions {

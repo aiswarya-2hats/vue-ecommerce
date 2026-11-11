@@ -5,21 +5,51 @@ import Filter from './Filter.vue'
 import ProductCard from './ProductCard.vue'
 import ProductSort from './ProductSort.vue'
 import RequestError from './RequestError.vue'
-import { getProducts, getCategories, getVariantsForProduct } from '../services/productService'
-import { primaryProductImage } from '../utils/productImage'
+import { getProducts, getCategories } from '../services/productService'
+import { primaryProductImage, hoverProductImage } from '../utils/productImage'
 import '../assets/productlisting.css'
 
 const route = useRoute()
 const router = useRouter()
 
+// ─── Constants ───────────────────────────────────────────────────────────────
+const PAGE_SIZE = 12
+const PRICE_MAX = 2500
+const FEATURED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+const featuredRank = new Map(FEATURED_IDS.map((id, index) => [id, index]))
+
+// ─── State ───────────────────────────────────────────────────────────────────
 const products = ref([])
 const categories = ref([])
 const loading = ref(true)
 const error = ref(null)
 
-// Read filter values from the URL
-const searchQuery = computed(() => route.query.q || '') // get search query from URL
+// Local copy so rapid filter updates don't overwrite each other
+// (route.query can lag behind router.replace)
+const queryDraft = ref({ ...route.query })
+
+// ─── URL-derived filters ─────────────────────────────────────────────────────
+const searchQuery = computed(() => route.query.q || '')
 const selectedCategory = computed(() => (route.query.category ? String(route.query.category) : ''))
+const selectedBrands = computed(() =>
+  route.query.brand ? String(route.query.brand).split(',').filter(Boolean) : [],
+)
+const selectedRating = computed(() => (route.query.rating ? Number(route.query.rating) : null))
+const inStockOnly = computed(() => route.query.inStock === '1' || route.query.inStock === 'true')
+const selectedSort = computed(() => route.query.sort || 'featured') // default sort is featured
+const minPrice = computed(() =>
+  route.query.minPrice != null && route.query.minPrice !== '' ? Number(route.query.minPrice) : 0,
+)
+const maxPrice = computed(() =>
+  route.query.maxPrice != null && route.query.maxPrice !== ''
+    ? Number(route.query.maxPrice)
+    : PRICE_MAX,
+)
+const page = computed(() => {
+  const n = Number(route.query.page)
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1
+})
+
 const categoryHeading = computed(() => {
   if (!selectedCategory.value) return 'All products'
   return selectedCategory.value
@@ -27,43 +57,24 @@ const categoryHeading = computed(() => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 })
-const selectedBrands = computed(
-  () =>
-    // get brands from URL
-    route.query.brand ? String(route.query.brand).split(',').filter(Boolean) : [], // if brands are in the URL, split them by comma and filter out empty brands
-)
-const selectedRating = computed(() => (route.query.rating ? Number(route.query.rating) : null)) // get rating from URL
-const inStockOnly = computed(() => route.query.inStock === '1' || route.query.inStock === 'true')
-const selectedSort = computed(() => route.query.sort || 'featured') // get sort from URL
-const minPrice = computed(() =>
-  route.query.minPrice != null && route.query.minPrice !== '' ? Number(route.query.minPrice) : 0,
-)
-const maxPrice = computed(() =>
-  route.query.maxPrice != null && route.query.maxPrice !== '' ? Number(route.query.maxPrice) : 2500,
-)
 
-// Predictable Featured order (lower index = higher priority)
-const FEATURED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-const featuredRank = new Map(FEATURED_IDS.map((id, index) => [id, index]))
-
-// Unrated / invalid → -1 (sort last; fail "X★ & up" filters)
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function ratingOf(product) {
+  // Unrated / invalid → -1 (sort last; fail "X★ & up" filters)
   const n = Number(product.rating)
   return product.rating == null || Number.isNaN(n) ? -1 : n
 }
 
+// ─── Pipeline: Filter → Sort → Paginate ──────────────────────────────────────
 const availableBrands = computed(() => {
-  // get available brands from products
-  const brands = products.value.map((p) => p.brand).filter(Boolean) // map products to brands and filter out empty brands
-  return [...new Set(brands)].sort().slice(0, 7) // return unique brands and sort them
+  const brands = products.value.map((p) => p.brand).filter(Boolean)
+  return [...new Set(brands)].sort().slice(0, 7)
 })
 
-// Search (from fetch) → Filter → Sort → Paginate
 const filteredProducts = computed(() => {
   return products.value.filter((product) => {
     const matchBrand =
-      selectedBrands.value.length === 0 || selectedBrands.value.includes(product.brand) // check if brands are not selected, or product brand is included in selected brands
-    // Unrated products are excluded when a minimum rating filter is active
+      selectedBrands.value.length === 0 || selectedBrands.value.includes(product.brand)
     const matchRating = !selectedRating.value || ratingOf(product) >= selectedRating.value
     const matchPrice = product.price >= minPrice.value && product.price <= maxPrice.value
     const matchStock = !inStockOnly.value || Number(product.stock) > 0
@@ -85,10 +96,7 @@ const sortedProducts = computed(() => {
   if (sort === 'price-asc') return list.sort((a, b) => a.price - b.price)
   if (sort === 'price-desc') return list.sort((a, b) => b.price - a.price)
   if (sort === 'name') return list.sort((a, b) => a.title.localeCompare(b.title))
-  if (sort === 'rating-desc') {
-    return list.sort((a, b) => ratingOf(b) - ratingOf(a) || a.id - b.id)
-  }
-  if (sort === 'best-selling') {
+  if (sort === 'rating-desc' || sort === 'best-selling') {
     return list.sort((a, b) => ratingOf(b) - ratingOf(a) || a.id - b.id)
   }
   if (sort === 'discount-desc') {
@@ -101,54 +109,14 @@ const sortedProducts = computed(() => {
     return list.sort((a, b) => {
       const da = Date.parse(a.meta?.createdAt) || 0
       const db = Date.parse(b.meta?.createdAt) || 0
-      return db - da || a.id - b.id // newest first; missing dates last
+      return db - da || a.id - b.id
     })
   }
 
   return list
 })
 
-const activeFilters = computed(() => {
-  const chips = [] // create a new array to store the active filters
-
-  if (selectedCategory.value) {
-    chips.push({
-      // add the category filter to the array
-      key: 'category',
-      label: selectedCategory.value,
-      type: 'category',
-    })
-  }
-  selectedBrands.value.forEach((brand) => {
-    chips.push({ key: `brand-${brand}`, label: brand, type: 'brand', value: brand })
-  })
-  if (selectedRating.value) {
-    chips.push({
-      // add the rating filter to the array
-      key: 'rating',
-      label: `${selectedRating.value}★ & up`,
-      type: 'rating',
-    })
-  }
-  if (inStockOnly.value) {
-    chips.push({ key: 'inStock', label: 'In stock only', type: 'inStock' })
-  }
-  if (minPrice.value > 0 || maxPrice.value < 2500) {
-    chips.push({
-      // add the price filter to the array
-      key: 'price',
-      label: `$${minPrice.value} – $${maxPrice.value}`,
-      type: 'price',
-    })
-  }
-
-  return chips // return the array of active filters to display
-})
-
-const PAGE_SIZE = 12
-const page = ref(1)
-
-const totalPages = computed(() => Math.ceil(sortedProducts.value.length / PAGE_SIZE) || 1) // calculate the total number of pages
+const totalPages = computed(() => Math.ceil(sortedProducts.value.length / PAGE_SIZE) || 1)
 
 const paginatedProducts = computed(() => {
   const start = (page.value - 1) * PAGE_SIZE
@@ -174,28 +142,46 @@ const pageItems = computed(() => {
   return items
 })
 
-function goToPage(n) {
-  if (n >= 1 && n <= totalPages.value) page.value = n
-}
+const activeFilters = computed(() => {
+  const chips = []
 
-watch(sortedProducts, () => {
-  page.value = 1
+  if (selectedCategory.value) {
+    chips.push({ key: 'category', label: selectedCategory.value, type: 'category' })
+  }
+  selectedBrands.value.forEach((brand) => {
+    chips.push({ key: `brand-${brand}`, label: brand, type: 'brand', value: brand })
+  })
+  if (selectedRating.value) {
+    chips.push({
+      key: 'rating',
+      label: `${selectedRating.value}★ & up`,
+      type: 'rating',
+    })
+  }
+  if (inStockOnly.value) {
+    chips.push({ key: 'inStock', label: 'In stock only', type: 'inStock' })
+  }
+  if (minPrice.value > 0 || maxPrice.value < PRICE_MAX) {
+    chips.push({
+      key: 'price',
+      label: `$${minPrice.value} – $${maxPrice.value}`,
+      type: 'price',
+    })
+  }
+
+  return chips
 })
 
-// Keep a local copy so rapid filter updates don't overwrite each other
-// (route.query can lag behind router.replace)
-const queryDraft = ref({ ...route.query })
-
-watch(
-  () => route.query,
-  (query) => {
-    queryDraft.value = { ...query }
-  },
-)
-
+// ─── Query helpers ───────────────────────────────────────────────────────────
 function updateQuery(updates) {
-  // update the query string in the URL after a filter is applied or removed
   const query = { ...queryDraft.value, ...updates }
+
+  // Changing filters/sort resets page unless page is set explicitly
+  const updateKeys = Object.keys(updates)
+  const pageOnly = updateKeys.length === 1 && updateKeys[0] === 'page'
+  if (!pageOnly && !('page' in updates)) {
+    delete query.page
+  }
 
   Object.keys(query).forEach((key) => {
     if (query[key] === '' || query[key] == null || query[key] === false) {
@@ -207,25 +193,16 @@ function updateQuery(updates) {
   router.replace({ query })
 }
 
-// function setCategory(category) {
-//   updateQuery({ category: category || '' })
-// }
-
 function setCategory(category) {
-  updateQuery({
-    category: category || '',
-    brand: '', // remove old brands
-  })
+  updateQuery({ category: category || '', brand: '' })
 }
 
 function setBrands(list) {
-  // set brands in URL
-  updateQuery({ brand: list.length ? list.join(',') : '' }) // if list is not empty, join the brands with a comma
+  updateQuery({ brand: list.length ? list.join(',') : '' })
 }
 
 function setRating(value) {
-  // set rating in URL
-  updateQuery({ rating: value || '' }) // if value is not empty, set the rating in the URL
+  updateQuery({ rating: value || '' })
 }
 
 function setInStock(value) {
@@ -233,10 +210,9 @@ function setInStock(value) {
 }
 
 function setPrice({ min, max }) {
-  // set price in URL
   updateQuery({
     minPrice: min === 0 ? '' : min,
-    maxPrice: max === 2500 ? '' : max,
+    maxPrice: max === PRICE_MAX ? '' : max,
   })
 }
 
@@ -245,16 +221,15 @@ function setSort(value) {
 }
 
 function removeFilter(chip) {
-  //remove individual filter by resetting the query string in the URL
   if (chip.type === 'category') setCategory('')
   else if (chip.type === 'brand') setBrands(selectedBrands.value.filter((b) => b !== chip.value))
   else if (chip.type === 'rating') setRating(null)
   else if (chip.type === 'inStock') setInStock(false)
-  else if (chip.type === 'price') setPrice({ min: 0, max: 2500 })
+  else if (chip.type === 'price') setPrice({ min: 0, max: PRICE_MAX })
 }
 
 function clearAllFilters() {
-  // clear filter chips only — search stays in the header / URL
+  // Clear filter chips only — search stays in the header / URL
   updateQuery({
     category: '',
     brand: '',
@@ -265,6 +240,13 @@ function clearAllFilters() {
   })
 }
 
+function goToPage(n) {
+  if (n < 1 || n > totalPages.value) return
+  // page=1 omitted from URL (default)
+  updateQuery({ page: n <= 1 ? '' : String(n) })
+}
+
+// ─── Data fetching ───────────────────────────────────────────────────────────
 async function fetchCategories() {
   try {
     categories.value = await getCategories()
@@ -278,7 +260,7 @@ async function fetchProducts() {
   error.value = null
 
   try {
-    // Fetch only — sort is applied client-side after filters
+    // Sort is applied client-side after filters
     let list = await getProducts({
       q: searchQuery.value,
       // API category endpoint can't combine with search — apply category after search
@@ -299,9 +281,33 @@ async function fetchProducts() {
   }
 }
 
+// ─── Watchers & init ─────────────────────────────────────────────────────────
+watch(
+  () => route.query,
+  (query) => {
+    queryDraft.value = { ...query }
+  },
+)
+
+// Keep page in range when filters shrink the list (e.g. deep link ?page=9)
+watch(totalPages, (total) => {
+  if (loading.value || products.value.length === 0) return
+  if (page.value > total) {
+    updateQuery({ page: total <= 1 ? '' : String(total) })
+  }
+})
+
 watch(
   () => [route.query.q, route.query.category],
-  () => {
+  (curr, prev) => {
+    // Getter returns a new array whenever route.query changes (including page).
+    // Only react when search or category actually changed.
+    if (prev && curr[0] === prev[0] && curr[1] === prev[1]) return
+
+    // Header / external navigations bypass updateQuery — reset page on change
+    if (prev && route.query.page) {
+      updateQuery({ page: '' })
+    }
     fetchProducts()
   },
   { immediate: true },
@@ -319,6 +325,7 @@ fetchCategories()
       smart filters, and sorting options, all in one place.
     </p>
   </div>
+
   <div class="layout">
     <Filter
       :categories="categories"
@@ -335,6 +342,7 @@ fetchCategories()
       @update:inStock="setInStock"
       @update:price="setPrice"
     />
+
     <section class="listing">
       <div class="listing__controls">
         <div v-if="activeFilters.length" class="filter-chips" aria-label="Active filters">
@@ -386,7 +394,9 @@ fetchCategories()
           </div>
         </div>
       </div>
+
       <RequestError v-else-if="error" :message="error" @retry="fetchProducts" />
+
       <p v-else-if="filteredProducts.length === 0">No products found.</p>
 
       <template v-else>
@@ -396,15 +406,16 @@ fetchCategories()
             :key="product.id"
             :id="product.id"
             :image="primaryProductImage(product)"
+            :hover-image="hoverProductImage(product)"
             :title="product.title"
             :stock="product.stock"
             :rating="product.rating"
             :price="product.price"
             :discount="product.discountPercentage"
             :brand="product.brand"
-            :variants="getVariantsForProduct(product.id)"
           />
         </div>
+
         <nav v-if="totalPages > 1" class="pagination" aria-label="Pagination">
           <button
             type="button"

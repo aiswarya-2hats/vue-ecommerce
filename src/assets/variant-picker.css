@@ -8,7 +8,7 @@
 .variant-picker__label {
   display: block;
   margin-bottom: 0.35rem;
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: capitalize;
   letter-spacing: 0.04em;
@@ -28,7 +28,7 @@
   background: #fff;
   color: var(--ink);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -43,39 +43,6 @@
 
 .variant-picker__btn--active {
   border-color: var(--ink);
-  background: var(--ink);
-  color: #fff;
-}
-
-.variant-picker--overlay {
-  gap: 0.45rem;
-}
-
-.variant-picker--overlay .variant-picker__label {
-  margin-bottom: 0.25rem;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.variant-picker--overlay .variant-picker__values {
-  gap: 0.35rem;
-}
-
-.variant-picker--overlay .variant-picker__btn {
-  padding: 0.28rem 0.55rem;
-  font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
-}
-
-.variant-picker--overlay .variant-picker__btn:hover {
-  border-color: #cfc8bc;
-  background: #fff;
-  color: #000;
-}
-
-.variant-picker--overlay .variant-picker__btn--active {
-  border-color: #fff;
   background: var(--ink);
   color: #fff;
 }

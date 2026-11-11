@@ -24,7 +24,6 @@ defineEmits(['select', 'decrease-qty', 'increase-qty', 'add-to-cart', 'buy-now']
   <div class="detail__info">
     <p v-if="product.brand" class="detail__brand">{{ product.brand }}</p>
     <h1 class="detail__title">{{ product.title }}</h1>
-    <span v-if="product.category" class="detail__category">{{ product.category }}</span>
 
     <div class="detail__meta">
       <span class="detail__stars" aria-hidden="true">{{ filledStars }}</span>

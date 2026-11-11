@@ -1,6 +1,6 @@
 @import './base.css';
+@import './typography.css';
 @import './buttons.css';
-@import './typohraphy.css';
 @import './requesterror.css';
 
 #app {

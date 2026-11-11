@@ -13,7 +13,7 @@
 
 .listing-header__title {
   margin: 0;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: var(--text-h2);
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
@@ -22,7 +22,7 @@
 .listing-header__description {
   margin: 0;
   max-width: 40rem;
-  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  font-size: var(--text-sub);
   line-height: 1.55;
   color: var(--ink-soft);
 }
@@ -59,7 +59,7 @@
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -87,7 +87,7 @@
   background: transparent;
   color: var(--ink-soft);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   padding: 0.35rem 0.25rem;
@@ -128,7 +128,7 @@
   background: #fff;
   color: var(--ink);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -142,7 +142,12 @@
   padding: 0 0.75rem;
 }
 
-.pagination__page:hover:not(:disabled),
+.pagination__page:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 .pagination__nav:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);

@@ -1,0 +1,100 @@
+.quickview {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  font-family: var(--font-body);
+}
+
+.quickview__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgb(18 18 18 / 55%);
+  cursor: pointer;
+}
+
+.quickview__panel {
+  position: relative;
+  z-index: 1;
+  width: min(1280px, 100%);
+  max-height: min(92vh, 960px);
+  overflow: auto;
+  border-radius: var(--radius, 10px);
+  background: var(--bg, #fff);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 25%);
+}
+
+.quickview__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 3;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink, #111);
+  font-size: var(--text-2xl);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(18 18 18 / 12%);
+}
+
+.quickview__close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.quickview__body {
+  /* Match .main page padding so ProductDetail looks the same */
+  padding: 1.25rem;
+  padding-top: 3rem;
+
+  @media (max-width: 768px) {
+    padding-top: 4rem;
+  }
+}
+
+.quickview__full-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.quickview__full-link:hover {
+  color: var(--accent);
+}
+
+.quickview .detail-page {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Sticky gallery fights the modal scroll — keep normal flow like a compact page */
+.quickview .detail__gallery {
+  position: static;
+}
+
+@media (min-width: 768px) {
+  .quickview {
+    padding: 1.5rem;
+  }
+
+  .quickview__body {
+    padding: 2rem 1.5rem 2.5rem;
+    padding-top: 3.25rem;
+  }
+}

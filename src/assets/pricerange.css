@@ -134,7 +134,7 @@
 }
 
 .price-field__label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--ink-soft);
 }
 
@@ -155,7 +155,7 @@
 
 .price-field__prefix {
   color: var(--ink-soft);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   line-height: 1;
 }
 
@@ -166,7 +166,7 @@
   padding: 0;
   background: transparent;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   color: var(--ink);
   outline: none;
   /* hide number spinners for a cleaner field */

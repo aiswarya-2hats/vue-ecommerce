@@ -18,7 +18,7 @@
 
 .footer__brand p {
   margin-top: 0.4rem;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   color: var(--ink-soft);
 }
 
@@ -30,7 +30,7 @@
 }
 
 .footer__links a {
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--ink-soft);
 }
@@ -40,7 +40,7 @@
 }
 
 .footer__copy {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--ink-soft);
   padding-top: 0.5rem;
   border-top: 1px solid var(--line);

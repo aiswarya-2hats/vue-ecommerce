@@ -16,12 +16,46 @@
   text-decoration: none;
 }
 
+.product__media .product__link {
+  position: relative;
+  display: block;
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .product__image {
   display: block;
   width: 100%;
   aspect-ratio: 1 / 1; /* box size fixed before image loads */
   object-fit: cover; /* fill the box without stretching */
   background: #ffffff; /* optional placeholder color */
+
+  @media (max-width: 768px) {
+    width: 70%;
+  }
+}
+
+.product__image--hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.product__media:hover .product__image--hover,
+.product__media:focus-within .product__image--hover {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .product__image--hover {
+    display: none;
+  }
 }
 
 .product:hover {
@@ -35,35 +69,7 @@
   background-position: center;
 }
 
-/* Dimmed overlay — opens only when palette icon is clicked */
-.product__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  align-items: flex-end;
-  padding: 0.75rem;
-  padding-bottom: 3rem;
-  background: rgb(18 18 18 / 78%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition:
-    opacity 0.2s ease,
-    visibility 0.2s ease;
-}
-
-.product__overlay--open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.product__variants {
-  width: 100%;
-}
-
-.product__variants-toggle {
+.product__quickview {
   position: absolute;
   right: 0.65rem;
   bottom: 0.65rem;
@@ -77,27 +83,43 @@
   border: 1px solid rgba(18, 18, 18, 0.08);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
-  font-size: 1rem;
-  line-height: 1;
+  color: var(--ink-soft);
   cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
   box-shadow: 0 2px 8px rgba(18, 18, 18, 0.12);
   transition:
-    background 0.2s ease,
+    opacity 0.2s ease,
+    visibility 0.2s ease,
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
-.product__variants-toggle:hover,
-.product__variants-toggle:focus-visible {
+.product__quickview svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.product:hover .product__quickview,
+.product:focus-within .product__quickview {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product__quickview:hover,
+.product__quickview:focus-visible {
+  color: var(--ink);
   background: #fff;
-  transform: scale(1.06);
-  box-shadow: 0 3px 10px rgba(18, 18, 18, 0.18);
   outline: none;
+  transform: scale(1.06);
 }
 
-.product__variants-toggle--active {
-  background: #fff;
-  box-shadow: 0 3px 10px rgba(18, 18, 18, 0.2);
+@media (hover: none) {
+  .product__quickview {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .product__wish {
@@ -139,21 +161,13 @@
     stroke 0.2s ease;
 }
 
-.product__wish:hover,
 .product__wish:focus-visible {
-  color: var(--wish);
-  background: var(--wish-soft);
-  border-color: rgba(196, 49, 75, 0.25);
-  transform: scale(1.06);
-  box-shadow: 0 3px 10px rgba(196, 49, 75, 0.2);
   outline: none;
+  border-color: rgba(196, 49, 75, 0.35);
+  transform: scale(1.06);
 }
 
-.product__wish:hover svg path,
-.product__wish:focus-visible svg path {
-  fill: currentColor;
-}
-
+/* Filled heart only when wishlisted — hover must not keep it filled after remove */
 .product__wish--active {
   color: var(--wish);
   background: var(--wish-soft);
@@ -163,6 +177,14 @@
 
 .product__wish--active svg path {
   fill: currentColor;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .product__wish:hover:not(.product__wish--active):not(.product__wish--remove) {
+    border-color: rgba(196, 49, 75, 0.25);
+    color: var(--wish);
+    transform: scale(1.06);
+  }
 }
 
 .product__wish:active {
@@ -191,7 +213,7 @@
 }
 
 .product__brand {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -200,7 +222,7 @@
 }
 
 .product__name {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   line-height: 1.35;
   color: var(--ink);
@@ -214,7 +236,7 @@
 }
 
 .product__rating {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--ink-soft);
 }
 
@@ -224,7 +246,7 @@
 
 .product__price {
   padding-top: 0.45rem;
-  font-size: 1.05rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--ink);
   display: flex;
@@ -237,12 +259,12 @@
   border-radius: var(--radius);
   color: var(--bg);
   padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
 }
 
 .product__stock-msg {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--wish);
 }
@@ -263,7 +285,7 @@
   border: none;
   background: transparent;
   color: var(--ink);
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   line-height: 1;
   cursor: pointer;
   transition:
@@ -285,7 +307,7 @@
 .qty__value {
   min-width: 2rem;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--ink);
 }

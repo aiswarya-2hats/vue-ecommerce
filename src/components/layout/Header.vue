@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWishlist } from '../../composables/useWishlist'
 import { useCart } from '../../composables/useCart'
 import { getProducts } from '../../services/productService'
-import ProductImage from '../ProductImage.vue'
 import { primaryProductImage } from '../../utils/productImage'
 import '../../assets/header.css'
 
@@ -190,10 +189,10 @@ function clearSearch() {
                 role="option"
                 @mousedown.prevent="goToProduct(product.id)"
               >
-                <ProductImage
+                <img
                   :src="primaryProductImage(product)"
                   :alt="product.title"
-                  img-class="search__thumb"
+                  class="search__thumb"
                 />
                 <span class="search__meta">
                   <span class="search__title">{{ product.title }}</span>

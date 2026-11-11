@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch } from 'vue'
-import ProductImage from './ProductImage.vue'
 
 const props = defineProps({
   images: { type: Array, default: () => [] },
@@ -35,7 +34,7 @@ function selectImage(src) {
 <template>
   <div class="detail__gallery">
     <div class="detail__main-image">
-      <ProductImage :src="activeImage" :alt="alt" />
+      <img :src="activeImage" :alt="alt" />
       <button
         type="button"
         class="detail__wish"
@@ -72,7 +71,7 @@ function selectImage(src) {
         :aria-label="`View image ${index + 1}`"
         @click="selectImage(src)"
       >
-        <ProductImage :src="src" :alt="`${alt} thumbnail ${index + 1}`" />
+        <img :src="src" :alt="`${alt} thumbnail ${index + 1}`" />
       </button>
     </div>
   </div>

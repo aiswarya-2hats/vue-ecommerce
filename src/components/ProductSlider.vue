@@ -6,8 +6,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import ProductCard from './ProductCard.vue'
 import RequestError from './RequestError.vue'
-import { getProduct, getVariantsForProduct } from '../services/productService'
-import { primaryProductImage } from '../utils/productImage'
+import { getProduct } from '../services/productService'
+import { primaryProductImage, hoverProductImage } from '../utils/productImage'
 import '../assets/productslider.css'
 
 const props = defineProps({
@@ -81,13 +81,13 @@ watch(
         <ProductCard
           :id="product.id"
           :image="primaryProductImage(product)"
+          :hover-image="hoverProductImage(product)"
           :title="product.title"
           :stock="product.stock"
           :rating="product.rating"
           :price="product.price"
           :discount="product.discountPercentage"
           :brand="product.brand"
-          :variants="getVariantsForProduct(product.id)"
         />
       </SwiperSlide>
     </Swiper>

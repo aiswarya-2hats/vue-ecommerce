@@ -20,7 +20,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   font: inherit;
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--ink);
   cursor: pointer;
@@ -87,13 +87,13 @@
 .filters__title {
   margin: 0;
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.2rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--ink);
 }
 
 .filters__close {
-  font-size: 1.75rem;
+  font-size: var(--text-3xl);
   line-height: 1;
   cursor: pointer;
   color: var(--ink-soft);
@@ -120,7 +120,7 @@
 }
 
 .filter-group__title {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -130,7 +130,7 @@
 
 .filter-group__empty {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   color: var(--ink-soft);
 }
 
@@ -139,7 +139,7 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.35rem 0;
-  font-size: 0.92rem;
+  font-size: var(--text-md);
   cursor: pointer;
   color: var(--ink);
 }

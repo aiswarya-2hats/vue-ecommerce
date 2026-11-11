@@ -3,8 +3,14 @@ import { getCookie, setCookie } from '../utils/cookies'
 
 const KEY = 'novashop_wishlist'
 
+function sameProduct(item, id) {
+  return item.id === Number(id)
+}
+
 function sameEntry(item, id, variantId = null) {
-  return item.id === Number(id) && (item.variantId || null) === (variantId || null)
+  const itemVariant = item.variantId != null ? String(item.variantId) : null
+  const checkVariant = variantId != null ? String(variantId) : null
+  return sameProduct(item, id) && itemVariant === checkVariant
 }
 
 function load() {
@@ -45,25 +51,26 @@ function save() {
 export function useWishlist() {
   const wishlistCount = computed(() => wishlistItems.value.length)
 
-  function isWishlisted(id, variantId = null) {
-    return wishlistItems.value.some((item) => sameEntry(item, id, variantId))
+  // Product-level: true if any entry for this product exists (card + quick view stay in sync)
+  function isWishlisted(id) {
+    return wishlistItems.value.some((item) => sameProduct(item, id))
   }
 
   function toggle(id, variant = null) {
     const numId = Number(id)
-    const variantId = variant?.id || null
     if (!numId) return
 
-    const index = wishlistItems.value.findIndex((item) => sameEntry(item, numId, variantId))
+    const already = wishlistItems.value.some((item) => sameProduct(item, numId))
 
-    if (index >= 0) {
-      wishlistItems.value = wishlistItems.value.filter((_, i) => i !== index)
+    if (already) {
+      // Second click removes every entry for this product
+      wishlistItems.value = wishlistItems.value.filter((item) => !sameProduct(item, numId))
     } else {
       wishlistItems.value = [
         ...wishlistItems.value,
         {
           id: numId,
-          variantId,
+          variantId: variant?.id || null,
           options: variant?.options || null,
           image: variant?.image || null,
           price: variant?.price ?? null,
@@ -75,9 +82,13 @@ export function useWishlist() {
   }
 
   function remove(id, variantId = null) {
-    wishlistItems.value = wishlistItems.value.filter(
-      (item) => !sameEntry(item, id, variantId),
-    )
+    if (variantId == null) {
+      wishlistItems.value = wishlistItems.value.filter((item) => !sameProduct(item, id))
+    } else {
+      wishlistItems.value = wishlistItems.value.filter(
+        (item) => !sameEntry(item, id, variantId),
+      )
+    }
     save()
   }
 

@@ -3,9 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWishlist } from '../composables/useWishlist'
 import { useCart } from '../composables/useCart'
-import { useProductVariants } from '../composables/useProductVariants'
-import VariantPicker from './VariantPicker.vue'
-import ProductImage from './ProductImage.vue'
+import { useQuickView } from '../composables/useQuickView'
 import '../assets/productcard.css'
 
 const router = useRouter()
@@ -13,63 +11,38 @@ const router = useRouter()
 const props = defineProps({
   id: { type: [Number, String], required: true },
   image: { type: String, required: true },
+  hoverImage: { type: String, default: '' },
   title: { type: String, required: true },
   stock: { type: [Number, String], required: true },
   rating: { type: [Number, String], required: true },
   price: { type: [Number, String], required: true },
   discount: { type: [Number, String], required: true },
   brand: { type: String, required: true },
-  variants: { type: Array, default: () => [] },
-  preferredVariantId: { type: [String, Number], default: null },
   removable: { type: Boolean, default: false },
 })
 
-const { isWishlisted, toggle: toggleWishlist, remove: removeWishlist } = useWishlist()
-const { add: addToCart } = useCart()
+const emit = defineEmits(['remove'])
+
+const { isWishlisted, toggle: toggleWishlist } = useWishlist()
+const { add: addToCart, getQty } = useCart()
+const { open: openQuickView } = useQuickView()
 
 const qty = ref(1)
-const variantsOpen = ref(false)
 
-const {
-  selectedOptions,
-  hasVariants,
-  optionKeys,
-  selectedVariant,
-  displayPrice,
-  displayImage,
-  stockLeft,
-  canAdd,
-  optionValues,
-  selectOption,
-} = useProductVariants({
-  variants: () => props.variants,
-  productId: () => props.id,
-  basePrice: () => props.price,
-  baseStock: () => props.stock,
-  baseImage: () => props.image,
-  qty,
-  preferredVariantId: () => props.preferredVariantId,
-})
-
-const wishlisted = computed(() => isWishlisted(props.id, selectedVariant.value?.id))
-
-const detailLink = computed(() => {
-  if (!selectedVariant.value?.id) return `/products/${props.id}`
-  return { path: `/products/${props.id}`, query: { variant: selectedVariant.value.id } }
-})
+const wishlisted = computed(() => isWishlisted(props.id))
+const detailLink = computed(() => `/products/${props.id}`)
+const displayPrice = computed(() => Number(props.price) || 0)
+const stockLeft = computed(() => Math.max(0, Number(props.stock) - getQty(props.id)))
+const canAdd = computed(() => stockLeft.value > 0 && qty.value <= stockLeft.value)
 
 function navigateToDetail() {
   router.push(detailLink.value)
 }
 
-function toggleVariants(e) {
-  e.preventDefault()
-  e.stopPropagation()
-  variantsOpen.value = !variantsOpen.value
-}
-
-function closeVariants() {
-  variantsOpen.value = false
+function onQuickView(event) {
+  event.preventDefault()
+  event.stopPropagation()
+  openQuickView(props.id)
 }
 
 const filledStars = computed(() => {
@@ -88,10 +61,10 @@ const originalPrice = computed(() => {
 
 function onWishAction() {
   if (props.removable) {
-    removeWishlist(props.id, selectedVariant.value?.id ?? props.preferredVariantId)
+    emit('remove')
     return
   }
-  toggleWishlist(props.id, selectedVariant.value)
+  toggleWishlist(props.id)
 }
 
 function decreaseQty() {
@@ -104,7 +77,7 @@ function increaseQty() {
 
 function onAddToCart() {
   if (!canAdd.value) return
-  addToCart(props.id, qty.value, selectedVariant.value)
+  addToCart(props.id, qty.value)
 }
 </script>
 
@@ -112,37 +85,33 @@ function onAddToCart() {
   <article class="product">
     <div class="product__media">
       <router-link :to="detailLink" class="product__link">
-        <ProductImage :src="displayImage" :alt="title" img-class="product__image" />
+        <img :src="image" :alt="title" class="product__image" />
+        <img
+          v-if="hoverImage"
+          :src="hoverImage"
+          alt=""
+          aria-hidden="true"
+          class="product__image product__image--hover"
+        />
       </router-link>
 
-      <template v-if="hasVariants">
-        <div
-          class="product__overlay"
-          :class="{ 'product__overlay--open': variantsOpen }"
-          @click="closeVariants"
+      <button type="button" class="product__quickview" aria-label="Quick view" @click="onQuickView">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-          <div class="product__variants" @click.stop>
-            <VariantPicker
-              tone="overlay"
-              :option-keys="optionKeys"
-              :selected-options="selectedOptions"
-              :option-values="optionValues"
-              @select="selectOption"
-            />
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="product__variants-toggle"
-          :class="{ 'product__variants-toggle--active': variantsOpen }"
-          :aria-label="variantsOpen ? 'Hide variants' : 'Show variants'"
-          :aria-expanded="variantsOpen"
-          @click="toggleVariants"
-        >
-          🎨
-        </button>
-      </template>
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </button>
 
       <button
         type="button"

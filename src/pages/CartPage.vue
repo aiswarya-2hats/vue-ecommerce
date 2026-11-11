@@ -2,7 +2,6 @@
 import { ref, watch, computed } from 'vue'
 import { useCart } from '../composables/useCart'
 import { getProduct } from '../services/productService'
-import ProductImage from '../components/ProductImage.vue'
 import RequestError from '../components/RequestError.vue'
 import { primaryProductImage } from '../utils/productImage'
 import '../assets/cart.css'
@@ -97,9 +96,9 @@ function productLink(line) {
     <ul v-else class="cart-list">
       <li v-for="line in lines" :key="lineKey(line)" class="cart-line">
         <router-link :to="productLink(line)" class="cart-line__media">
-          <ProductImage
+          <img
             v-if="line.product || line.image"
-            img-class="cart-line__image"
+            class="cart-line__image"
             :src="line.image || primaryProductImage(line.product)"
             :alt="line.product?.title || `Product #${line.id}`"
           />
@@ -150,7 +149,7 @@ function productLink(line) {
     </ul>
     <br />
 
-    <router-link to="/products" class="btn btn--secondary"> Continue shopping </router-link>
+    <router-link to="/products" class="btn btn--primary"> Continue shopping </router-link>
 
     <p v-if="cartItems.length" class="cart-page__total">Total: ${{ total.toFixed(2) }}</p>
   </section>

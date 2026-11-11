@@ -4,10 +4,10 @@ import ProductCard from '../components/ProductCard.vue'
 import RequestError from '../components/RequestError.vue'
 import { useWishlist } from '../composables/useWishlist'
 import { getProduct, getVariantsForProduct } from '../services/productService'
-import { primaryProductImage } from '../utils/productImage'
+import { primaryProductImage, hoverProductImage } from '../utils/productImage'
 import '../assets/wishlist.css'
 
-const { wishlistItems, wishlistCount, clear } = useWishlist()
+const { wishlistItems, wishlistCount, clear, remove } = useWishlist()
 const productsById = ref({})
 const loading = ref(wishlistItems.value.length > 0)
 const error = ref(null)
@@ -30,8 +30,7 @@ const items = computed(() =>
       return {
         key: lineKey(entry),
         product,
-        variants,
-        preferredVariantId: entry.variantId,
+        variantId: entry.variantId,
         image: entry.image || variant?.image || primaryProductImage(product),
         price: entry.price ?? variant?.price ?? product.price,
         stock: variant?.stock ?? product.stock,
@@ -105,15 +104,15 @@ watch(wishlistItems, fetchProducts, { immediate: true, deep: true })
           :key="item.key"
           :id="item.product.id"
           :image="item.image"
+          :hover-image="hoverProductImage(item.product)"
           :title="item.product.title"
           :stock="item.stock"
           :rating="item.product.rating"
           :price="item.price"
           :discount="item.product.discountPercentage"
           :brand="item.product.brand"
-          :variants="item.variants"
-          :preferred-variant-id="item.preferredVariantId"
           removable
+          @remove="remove(item.product.id, item.variantId)"
         />
       </div>
 

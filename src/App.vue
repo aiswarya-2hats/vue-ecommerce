@@ -4,6 +4,7 @@ import 'vue-sonner/style.css'
 import Footer from './components/layout/Footer.vue'
 import Header from './components/layout/Header.vue'
 import Breadcrumbs from './components/Breadcrumbs.vue'
+import QuickViewModal from './components/QuickViewModal.vue'
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import Breadcrumbs from './components/Breadcrumbs.vue'
       <RouterView />
     </main>
     <Footer />
+    <QuickViewModal />
     <Toaster position="top-right" richColors closeButton />
   </div>
 </template>

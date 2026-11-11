@@ -109,7 +109,7 @@
 
 .product-slider .swiper-button-prev::after,
 .product-slider .swiper-button-next::after {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 700;
 }
 
@@ -143,6 +143,6 @@
 
   .product-slider .swiper-button-prev::after,
   .product-slider .swiper-button-next::after {
-    font-size: 9px;
+    font-size: var(--text-2xs);
   }
 }
