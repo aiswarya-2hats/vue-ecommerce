@@ -11,6 +11,8 @@ const props = defineProps({
 defineEmits(['toggle-wish'])
 
 const activeImage = ref(props.image || props.images[0] || '')
+const zooming = ref(false)
+const zoomOrigin = ref('50% 50%')
 
 watch(
   () => props.image,
@@ -29,12 +31,40 @@ watch(
 function selectImage(src) {
   if (src) activeImage.value = src
 }
+
+function onZoomMove(event) {
+  if (event.target.closest('.detail__wish')) {
+    zooming.value = false
+    return
+  }
+
+  const el = event.currentTarget
+  const rect = el.getBoundingClientRect()
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  zoomOrigin.value = `${x}% ${y}%`
+  zooming.value = true
+}
+
+function onZoomLeave() {
+  zooming.value = false
+  zoomOrigin.value = '50% 50%'
+}
 </script>
 
 <template>
   <div class="detail__gallery">
-    <div class="detail__main-image">
-      <img :src="activeImage" :alt="alt" />
+    <div
+      class="detail__main-image"
+      :class="{ 'detail__main-image--zoom': zooming }"
+      @mousemove="onZoomMove"
+      @mouseleave="onZoomLeave"
+    >
+      <img
+        :src="activeImage"
+        :alt="alt"
+        :style="{ transformOrigin: zoomOrigin }"
+      />
       <button
         type="button"
         class="detail__wish"
