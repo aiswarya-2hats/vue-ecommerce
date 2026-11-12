@@ -17,6 +17,7 @@ function onSortChange(event) {
 
 <template>
   <div class="listing__toolbar">
+    <h2 class="listing__heading">{{ heading }}</h2>
     <div class="listing__toolbar-right">
       <p class="listing__count">{{ count }} products</p>
       <label class="sort" for="product-sort">

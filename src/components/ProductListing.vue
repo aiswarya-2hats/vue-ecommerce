@@ -323,7 +323,7 @@ fetchCategories()
 
 <template>
   <div class="listing-header">
-    <h1 class="listing-header__title">{{ categoryHeading }}</h1>
+    <h1 class="listing-header__title">Shop</h1>
     <p class="listing-header__description">
       Discover a wide range of quality products at NovaShop. Explore our latest collections across
       beauty, fragrances, furniture, and groceries. Find the perfect products with easy search,

@@ -6,7 +6,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('../pages/Home.vue'),
+      component: () => import('../pages/HomePage.vue'),
       meta: { breadcrumb: 'Home' },
     },
     {
@@ -18,7 +18,7 @@ const router = createRouter({
     {
       path: '/products/:id',
       name: 'product-detail',
-      component: () => import('../pages/DetailPage.vue'),
+      component: () => import('../pages/ProductDetailPage.vue'),
       meta: {
         breadcrumb: (route) => `Product ${route.params.id}`,
         parent: { label: 'Products', path: '/products' },

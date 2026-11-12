@@ -24,17 +24,19 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin: 0 0 0 auto;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  width: 100%;
+  margin: 0;
 }
 
 .listing__heading {
   margin: 0;
+  flex: 1 1 12rem;
+  min-width: 0;
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--ink, var(--color-heading));
-  text-transform: capitalize;
   letter-spacing: -0.02em;
 }
 
@@ -53,4 +55,11 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+    align-items: start;
+  }
 }
