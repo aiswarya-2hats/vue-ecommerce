@@ -112,8 +112,9 @@ function retryLoad() {
 
 watch(
   () => props.productId,
-  (id) => {
-    if (id) loadProduct(id)
+  (newVal, oldVal) => {
+    if (!newVal || newVal === oldVal) return
+    loadProduct(newVal)
   },
   { immediate: true },
 )

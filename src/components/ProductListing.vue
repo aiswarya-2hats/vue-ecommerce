@@ -51,6 +51,11 @@ const page = computed(() => {
 })
 
 const categoryHeading = computed(() => {
+  if (searchQuery.value) {
+    const count = filteredProducts.value.length
+    const word = count === 1 ? 'product' : 'products'
+    return `${count} ${word} were found for "${searchQuery.value}"`
+  }
   if (!selectedCategory.value) return 'All products'
   return selectedCategory.value
     .split(/[-_]/)

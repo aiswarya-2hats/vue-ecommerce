@@ -30,14 +30,13 @@ watch(
 )
 
 // Live suggestions once the query has at least 3 characters
-watch(searchText, (value) => {
-  clearTimeout(searchTimer) //clear the timeout if it exists
-  const q = value.trim()
+function loadSuggestions() {
+  clearTimeout(searchTimer)
+  const q = searchText.value.trim()
   hasSearched.value = false
 
   if (q.length < 3) {
-    //if the query is less than 3 characters, clear the suggestions.no api call
-    searchRequestId++ // invalidate any in-flight request
+    searchRequestId++
     suggestions.value = []
     return
   }
@@ -45,14 +44,21 @@ watch(searchText, (value) => {
   searchTimer = setTimeout(async () => {
     const requestId = ++searchRequestId
     const results = await getProducts({ q, limit: 0 })
-
-    // ignore older responses so they cannot overwrite newer results
     if (requestId !== searchRequestId) return
-
     suggestions.value = results
     hasSearched.value = true
   }, 500)
-})
+}
+
+watch(searchText, loadSuggestions)
+
+function onFocus() {
+  isFocused.value = true
+  // After Enter, text is still there but suggestions were cleared
+  if (searchText.value.trim().length >= 3 && !suggestions.value.length) {
+    loadSuggestions()
+  }
+}
 
 function closeDropdown() {
   isFocused.value = false
@@ -75,20 +81,16 @@ async function toggleSearch() {
 
 function onSearch(event) {
   event.preventDefault()
-  closeMobileSearch()
+  searchOpen.value = false
 
-  clearTimeout(searchTimer) // stop the pending suggestions call
+  clearTimeout(searchTimer)
   suggestions.value = []
+  hasSearched.value = false
 
   const q = searchText.value.trim()
+  if (!q) return
 
-  if (q) {
-    router.push({ path: '/products', query: { q } })
-  } else {
-    const query = { ...route.query }
-    delete query.q
-    router.push({ path: '/products', query })
-  }
+  router.push({ path: '/products', query: { q } })
 }
 
 function goToProduct(id) {
@@ -143,7 +145,7 @@ function clearSearch() {
               role="combobox"
               aria-autocomplete="list"
               :aria-expanded="isFocused && suggestions.length > 0"
-              @focus="isFocused = true"
+              @focus="onFocus"
               @blur="onBlur"
             />
             <button

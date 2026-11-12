@@ -167,7 +167,7 @@ function onAddToCart() {
         <span class="stars">{{ filledStars }}</span> ({{ rating }})
       </p>
 
-      <p class="product__price">
+      <p class="product__price" :class="{ 'product__price--discount': hasDiscount }">
         ${{ displayPrice.toFixed(2) }}
         <template v-if="hasDiscount">
           <s class="product__original-price">${{ originalPrice.toFixed(2) }}</s>

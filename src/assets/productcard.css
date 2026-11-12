@@ -18,7 +18,9 @@
 
 .product__media .product__link {
   position: relative;
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   @media (max-width: 768px) {
     display: flex;
@@ -29,7 +31,7 @@
 
 .product__image {
   display: block;
-  width: 100%;
+  width: 80%;
   aspect-ratio: 1 / 1; /* box size fixed before image loads */
   object-fit: cover; /* fill the box without stretching */
   background: #ffffff; /* optional placeholder color */
@@ -41,10 +43,19 @@
 
 .product__image--hover {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .product__image--hover {
+    width: 70%;
+  }
 }
 
 .product__media:hover .product__image--hover,
@@ -85,12 +96,10 @@
   background: rgba(255, 255, 255, 0.95);
   color: var(--ink-soft);
   cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
+  opacity: 1;
+  visibility: visible;
   box-shadow: 0 2px 8px rgba(18, 18, 18, 0.12);
   transition:
-    opacity 0.2s ease,
-    visibility 0.2s ease,
     transform 0.2s ease,
     background 0.2s ease,
     color 0.2s ease;
@@ -101,25 +110,12 @@
   flex-shrink: 0;
 }
 
-.product:hover .product__quickview,
-.product:focus-within .product__quickview {
-  opacity: 1;
-  visibility: visible;
-}
-
 .product__quickview:hover,
 .product__quickview:focus-visible {
   color: var(--ink);
   background: #fff;
   outline: none;
   transform: scale(1.06);
-}
-
-@media (hover: none) {
-  .product__quickview {
-    opacity: 1;
-    visibility: visible;
-  }
 }
 
 .product__wish {
@@ -247,13 +243,17 @@
 
 .product__price {
   padding-top: 0.45rem;
-  font-size: var(--text-lg);
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--ink);
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
   align-items: center;
+}
+
+.product__price--discount {
+  color: var(--accent);
 }
 
 .product__discount {

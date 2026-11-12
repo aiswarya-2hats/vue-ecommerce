@@ -1,4 +1,4 @@
-const BASE_URL = 'https://dummyjson.com'
+const BASE_URL = import.meta.env.VITE_BASE_URL
 import variantsData from '../data/productVariants.json'
 
 export async function getProduct(id) {

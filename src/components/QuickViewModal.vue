@@ -1,20 +1,63 @@
 <script setup>
-import { watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, nextTick, onUnmounted } from 'vue'
 import { useQuickView } from '../composables/useQuickView'
 import ProductDetail from './ProductDetail.vue'
 import '../assets/quickview.css'
 
 const { productId, close } = useQuickView()
 
-function onKeydown(event) {
-  if (event.key === 'Escape') close()
+const dialogRef = ref(null)
+const closeBtnRef = ref(null)
+let lastFocused = null
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+function getFocusable() {
+  return [...(dialogRef.value?.querySelectorAll(FOCUSABLE) || [])]
 }
 
-watch(productId, (id) => {
+function onKeydown(event) {
+  if (!productId.value) return
+
+  if (event.key === 'Escape') {
+    close()
+    return
+  }
+
+  // Keep Tab inside the popup
+  if (event.key !== 'Tab') return
+
+  const items = getFocusable()
+  if (!items.length) return
+
+  const first = items[0]
+  const last = items[items.length - 1]
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+watch(productId, async (id, prev) => {
   document.body.style.overflow = id ? 'hidden' : ''
+
+  if (id) {
+    lastFocused = document.activeElement
+    await nextTick()
+    closeBtnRef.value?.focus() // focus moves into popup
+    window.addEventListener('keydown', onKeydown)
+  } else if (prev) {
+    window.removeEventListener('keydown', onKeydown)
+    lastFocused?.focus?.() // return focus to Quick view button
+    lastFocused = null
+  }
 })
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = ''

@@ -181,6 +181,7 @@
   .filters__panel-head {
     padding: 1.15rem 1.2rem 0;
     border-bottom: none;
+    margin-bottom: 2rem;
   }
 
   .filters__panel-inner {
