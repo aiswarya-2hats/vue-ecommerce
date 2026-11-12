@@ -343,23 +343,6 @@
   font-weight: 600;
 }
 
-@media (min-width: 640px) {
-  .detail__actions {
-    flex-direction: row;
-    align-items: stretch;
-  }
-
-  .detail__actions-row {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .detail__add-cart {
-    width: auto;
-    flex: 1;
-  }
-}
-
 .detail__specs {
   margin: 0.5rem 0 0;
   padding: 0;
