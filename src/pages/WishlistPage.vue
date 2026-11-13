@@ -2,9 +2,9 @@
 import { ref, watch, computed } from 'vue'
 import ProductCard from '../components/ProductCard.vue'
 import RequestError from '../components/RequestError.vue'
-import { useWishlist } from '../composables/useWishlist'
-import { getProduct, getVariantsForProduct } from '../services/productService'
-import { primaryProductImage, hoverProductImage } from '../utils/productImage'
+import { useWishlist } from '../composables/useWishlist.js'
+import { getProduct, getVariantsForProduct } from '../services/productService.js'
+import { primaryProductImage, hoverProductImage } from '../utils/productImage.js'
 import '../assets/wishlist.css'
 
 const { wishlistItems, wishlistCount, clear, remove } = useWishlist()

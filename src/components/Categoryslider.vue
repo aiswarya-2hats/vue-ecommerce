@@ -6,8 +6,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import ProductCard from './ProductCard.vue'
 import RequestError from './RequestError.vue'
-import { getProducts } from '../services/productService'
-import { primaryProductImage, hoverProductImage } from '../utils/productImage'
+import { getProducts } from '../services/productService.js'
+import { primaryProductImage, hoverProductImage } from '../utils/productImage.js'
 import '../assets/productslider.css'
 
 const props = defineProps({
@@ -58,9 +58,7 @@ async function fetchProducts() {
       limit: exclude == null ? props.limit : props.limit + 1,
     })
     products.value =
-      exclude == null
-        ? list
-        : list.filter((p) => p.id !== exclude).slice(0, props.limit)
+      exclude == null ? list : list.filter((p) => p.id !== exclude).slice(0, props.limit)
   } catch (err) {
     error.value = 'We couldn’t load these products. Check your connection and try again.'
     console.error(err)
@@ -96,7 +94,12 @@ watch(
     <RequestError v-else-if="error" :message="error" @retry="fetchProducts" />
 
     <template v-else>
-      <button ref="prevEl" type="button" class="product-slider__prev" aria-label="Previous"></button>
+      <button
+        ref="prevEl"
+        type="button"
+        class="product-slider__prev"
+        aria-label="Previous"
+      ></button>
       <button ref="nextEl" type="button" class="product-slider__next" aria-label="Next"></button>
       <Swiper
         :modules="modules"

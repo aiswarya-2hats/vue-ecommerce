@@ -68,9 +68,7 @@ function formatDate(value) {
       <ul v-if="reviews.length" class="detail-reviews">
         <li v-for="(review, index) in reviews" :key="index" class="detail-reviews__item">
           <div class="detail-reviews__meta">
-            <span class="detail-reviews__stars" aria-hidden="true">{{
-              stars(review.rating)
-            }}</span>
+            <span class="detail-reviews__stars" aria-hidden="true">{{ stars(review.rating) }}</span>
             <strong class="detail-reviews__name">{{ review.reviewerName }}</strong>
             <time class="detail-reviews__date" :datetime="review.date">{{
               formatDate(review.date)

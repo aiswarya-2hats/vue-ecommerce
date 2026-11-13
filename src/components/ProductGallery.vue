@@ -60,11 +60,7 @@ function onZoomLeave() {
       @mousemove="onZoomMove"
       @mouseleave="onZoomLeave"
     >
-      <img
-        :src="activeImage"
-        :alt="alt"
-        :style="{ transformOrigin: zoomOrigin }"
-      />
+      <img :src="activeImage" :alt="alt" :style="{ transformOrigin: zoomOrigin }" />
       <button
         type="button"
         class="detail__wish"

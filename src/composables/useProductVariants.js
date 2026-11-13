@@ -60,9 +60,7 @@ export function useProductVariants({
 
   // Prefer ?variant=id when present, otherwise first variant
   function selectVariantById(id) {
-    const match = id
-      ? variants.value.find((v) => String(v.id) === String(id))
-      : null
+    const match = id ? variants.value.find((v) => String(v.id) === String(id)) : null
     syncOptionsFromVariant(match || variants.value[0] || null)
     if (qty) qty.value = 1
   }

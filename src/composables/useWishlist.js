@@ -85,9 +85,7 @@ export function useWishlist() {
     if (variantId == null) {
       wishlistItems.value = wishlistItems.value.filter((item) => !sameProduct(item, id))
     } else {
-      wishlistItems.value = wishlistItems.value.filter(
-        (item) => !sameEntry(item, id, variantId),
-      )
+      wishlistItems.value = wishlistItems.value.filter((item) => !sameEntry(item, id, variantId))
     }
     save()
   }

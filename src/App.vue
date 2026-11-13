@@ -1,9 +1,9 @@
 <script setup>
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
-import Footer from './components/layout/Footer.vue'
-import Header from './components/layout/Header.vue'
-import Breadcrumbs from './components/Breadcrumbs.vue'
+import Footer from './components/layout/AppFooter.vue'
+import Header from './components/layout/AppHeader.vue'
+import Breadcrumbs from './components/AppBreadcrumbs.vue'
 import QuickViewModal from './components/QuickViewModal.vue'
 </script>
 

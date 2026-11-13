@@ -33,7 +33,7 @@ const router = createRouter({
     {
       path: '/wishlist',
       name: 'wishlist',
-      component: () => import('../pages/Wishlist.vue'),
+      component: () => import('../pages/WishlistPage.vue'),
       meta: { breadcrumb: 'Wishlist' },
     },
   ],

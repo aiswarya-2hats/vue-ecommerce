@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Filter from './Filter.vue'
+import Filter from './ProductFilter.vue'
 import ProductCard from './ProductCard.vue'
 import ProductSort from './ProductSort.vue'
 import RequestError from './RequestError.vue'
