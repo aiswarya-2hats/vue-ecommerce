@@ -82,7 +82,7 @@ onUnmounted(() => {
       <div class="quickview__panel">
         <button type="button" class="quickview__close" aria-label="Close" @click="close">×</button>
         <div class="quickview__body">
-          <ProductDetail :product-id="productId" />
+          <ProductDetail :product-id="productId" :show-related="false" />
           <router-link class="quickview__full-link" :to="`/products/${productId}`" @click="close">
             View full details →
           </router-link>

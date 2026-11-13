@@ -23,6 +23,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  excludeId: {
+    type: [Number, String],
+    default: null,
+  },
 })
 
 const prevEl = ref(null)
@@ -48,10 +52,15 @@ async function fetchProducts() {
   error.value = null
 
   try {
-    products.value = await getProducts({
+    const exclude = props.excludeId == null ? null : Number(props.excludeId)
+    const list = await getProducts({
       category: props.category,
-      limit: props.limit,
+      limit: exclude == null ? props.limit : props.limit + 1,
     })
+    products.value =
+      exclude == null
+        ? list
+        : list.filter((p) => p.id !== exclude).slice(0, props.limit)
   } catch (err) {
     error.value = 'We couldn’t load these products. Check your connection and try again.'
     console.error(err)
@@ -61,7 +70,7 @@ async function fetchProducts() {
 }
 
 watch(
-  () => [props.category, props.limit],
+  () => [props.category, props.limit, props.excludeId],
   () => {
     fetchProducts()
   },
@@ -70,7 +79,7 @@ watch(
 </script>
 
 <template>
-  <div class="product-slider section-gap">
+  <div v-if="loading || error || products.length" class="product-slider section-gap">
     <h2 v-if="title" class="product-slider__title">{{ title }}</h2>
 
     <template v-if="loading">

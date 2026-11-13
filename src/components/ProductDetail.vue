@@ -8,6 +8,8 @@ import { useQuickView } from '../composables/useQuickView'
 import { useProductVariants } from '../composables/useProductVariants'
 import ProductGallery from './ProductGallery.vue'
 import ProductBuyBox from './ProductBuyBox.vue'
+import ProductTabs from './ProductTabs.vue'
+import Categoryslider from './Categoryslider.vue'
 import RequestError from './RequestError.vue'
 import { primaryProductImage } from '../utils/productImage'
 import '../assets/productdetail.css'
@@ -16,6 +18,7 @@ const props = defineProps({
   productId: { type: [Number, String], required: true },
   showBack: { type: Boolean, default: false },
   syncVariantToRoute: { type: Boolean, default: false },
+  showRelated: { type: Boolean, default: true },
 })
 
 const route = useRoute()
@@ -188,35 +191,47 @@ function onBuyNow() {
     </div>
     <RequestError v-else-if="error" :message="error" :retryable="canRetry" @retry="retryLoad" />
 
-    <article v-else-if="product" class="detail">
-      <ProductGallery
-        :images="images"
-        :alt="product.title"
-        :image="galleryImage"
-        :wishlisted="wishlisted"
-        @toggle-wish="onToggleWish"
-      />
+    <template v-else-if="product">
+      <article class="detail">
+        <ProductGallery
+          :images="images"
+          :alt="product.title"
+          :image="galleryImage"
+          :wishlisted="wishlisted"
+          @toggle-wish="onToggleWish"
+        />
 
-      <ProductBuyBox
-        :product="product"
-        :display-price="displayPrice"
-        :original-price="originalPrice"
-        :has-discount="hasDiscount"
-        :filled-stars="filledStars"
-        :stock-left="stockLeft"
-        :has-variants="hasVariants"
-        :option-keys="optionKeys"
-        :selected-options="selectedOptions"
-        :option-values="optionValues"
-        :selected-variant="selectedVariant"
-        :qty="qty"
-        :can-add="canAdd"
-        @select="onSelectOption"
-        @decrease-qty="decreaseQty"
-        @increase-qty="increaseQty"
-        @add-to-cart="onAddToCart"
-        @buy-now="onBuyNow"
+        <ProductBuyBox
+          :product="product"
+          :display-price="displayPrice"
+          :original-price="originalPrice"
+          :has-discount="hasDiscount"
+          :filled-stars="filledStars"
+          :stock-left="stockLeft"
+          :has-variants="hasVariants"
+          :option-keys="optionKeys"
+          :selected-options="selectedOptions"
+          :option-values="optionValues"
+          :selected-variant="selectedVariant"
+          :qty="qty"
+          :can-add="canAdd"
+          @select="onSelectOption"
+          @decrease-qty="decreaseQty"
+          @increase-qty="increaseQty"
+          @add-to-cart="onAddToCart"
+          @buy-now="onBuyNow"
+        />
+      </article>
+
+      <ProductTabs :description="product.description" :reviews="product.reviews || []" />
+
+      <Categoryslider
+        v-if="showRelated && product.category"
+        :category="product.category"
+        title="Related products"
+        :limit="8"
+        :exclude-id="product.id"
       />
-    </article>
+    </template>
   </section>
 </template>

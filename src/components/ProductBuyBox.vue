@@ -52,8 +52,6 @@ defineEmits(['select', 'decrease-qty', 'increase-qty', 'add-to-cart', 'buy-now']
       />
     </div>
 
-    <p v-if="product.description" class="detail__desc">{{ product.description }}</p>
-
     <ul
       v-if="product.sku || product.warrantyInformation || product.shippingInformation"
       class="detail__specs"
