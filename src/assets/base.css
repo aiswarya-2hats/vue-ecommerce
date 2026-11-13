@@ -108,3 +108,7 @@ body {
   white-space: nowrap;
   border: 0;
 }
+
+.container {
+  padding-bottom: 5rem;
+}

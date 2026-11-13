@@ -19,6 +19,7 @@ const props = defineProps({
   showBack: { type: Boolean, default: false },
   syncVariantToRoute: { type: Boolean, default: false },
   showRelated: { type: Boolean, default: true },
+  showTabs: { type: Boolean, default: true },
 })
 
 const route = useRoute()
@@ -192,46 +193,55 @@ function onBuyNow() {
     <RequestError v-else-if="error" :message="error" :retryable="canRetry" @retry="retryLoad" />
 
     <template v-else-if="product">
-      <article class="detail">
-        <ProductGallery
-          :images="images"
-          :alt="product.title"
-          :image="galleryImage"
-          :wishlisted="wishlisted"
-          @toggle-wish="onToggleWish"
+      <div class="container">
+        <article class="detail">
+          <ProductGallery
+            :images="images"
+            :alt="product.title"
+            :image="galleryImage"
+            :wishlisted="wishlisted"
+            @toggle-wish="onToggleWish"
+          />
+
+          <ProductBuyBox
+            :product="product"
+            :display-price="displayPrice"
+            :original-price="originalPrice"
+            :has-discount="hasDiscount"
+            :filled-stars="filledStars"
+            :stock-left="stockLeft"
+            :has-variants="hasVariants"
+            :option-keys="optionKeys"
+            :selected-options="selectedOptions"
+            :option-values="optionValues"
+            :selected-variant="selectedVariant"
+            :qty="qty"
+            :can-add="canAdd"
+            @select="onSelectOption"
+            @decrease-qty="decreaseQty"
+            @increase-qty="increaseQty"
+            @add-to-cart="onAddToCart"
+            @buy-now="onBuyNow"
+          />
+        </article>
+      </div>
+
+      <div class="container">
+        <ProductTabs
+          v-if="showTabs"
+          :description="product.description"
+          :reviews="product.reviews || []"
         />
-
-        <ProductBuyBox
-          :product="product"
-          :display-price="displayPrice"
-          :original-price="originalPrice"
-          :has-discount="hasDiscount"
-          :filled-stars="filledStars"
-          :stock-left="stockLeft"
-          :has-variants="hasVariants"
-          :option-keys="optionKeys"
-          :selected-options="selectedOptions"
-          :option-values="optionValues"
-          :selected-variant="selectedVariant"
-          :qty="qty"
-          :can-add="canAdd"
-          @select="onSelectOption"
-          @decrease-qty="decreaseQty"
-          @increase-qty="increaseQty"
-          @add-to-cart="onAddToCart"
-          @buy-now="onBuyNow"
+      </div>
+      <div class="container">
+        <Categoryslider
+          v-if="showRelated && product.category"
+          :category="product.category"
+          title="Related products"
+          :limit="8"
+          :exclude-id="product.id"
         />
-      </article>
-
-      <ProductTabs :description="product.description" :reviews="product.reviews || []" />
-
-      <Categoryslider
-        v-if="showRelated && product.category"
-        :category="product.category"
-        title="Related products"
-        :limit="8"
-        :exclude-id="product.id"
-      />
+      </div>
     </template>
   </section>
 </template>
