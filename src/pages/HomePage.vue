@@ -1,6 +1,6 @@
 <script setup>
 import Banner from '@/components/HomeBanner.vue'
-import Categoryslider from '@/components/CategorySlider.vue'
+import Categoryslider from '@/components/Categoryslider.vue'
 import ProductSlider from '@/components/ProductSlider.vue'
 
 const FeaturedProducts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
