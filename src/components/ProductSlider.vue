@@ -1,9 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation } from 'swiper/modules'
 import 'swiper/css'
-import 'swiper/css/navigation'
 import ProductCard from './ProductCard.vue'
 import RequestError from './RequestError.vue'
 import { getProduct } from '../services/productService'
@@ -17,10 +15,38 @@ const props = defineProps({
   },
 })
 
-const modules = [Navigation]
+const swiperRef = ref(null)
+const isBeginning = ref(true)
+const isEnd = ref(false)
+const showNav = ref(false)
 const products = ref([])
 const loading = ref(true)
 const error = ref(null)
+
+function onSwiper(swiper) {
+  swiperRef.value = swiper
+  syncNav(swiper)
+  swiper.on('slideChange', () => syncNav(swiper))
+  swiper.on('resize', () => syncNav(swiper))
+  swiper.on('update', () => syncNav(swiper))
+  swiper.on('lock', () => syncNav(swiper))
+  swiper.on('unlock', () => syncNav(swiper))
+}
+
+function syncNav(swiper) {
+  isBeginning.value = swiper.isBeginning
+  isEnd.value = swiper.isEnd
+  // Hide arrows when all slides fit (e.g. ≤4 on desktop)
+  showNav.value = !swiper.isLocked
+}
+
+function slidePrev() {
+  swiperRef.value?.slidePrev()
+}
+
+function slideNext() {
+  swiperRef.value?.slideNext()
+}
 
 async function fetchProducts() {
   loading.value = true
@@ -51,7 +77,7 @@ watch(
 </script>
 
 <template>
-  <div class="product-slider section-gap">
+  <div class="product-slider container">
     <template v-if="loading">
       <div class="product-slider__skeleton" aria-busy="true" aria-label="Loading products">
         <div v-for="n in 4" :key="n" class="product-slider__skeleton-card">
@@ -65,31 +91,77 @@ watch(
 
     <RequestError v-else-if="error" :message="error" @retry="fetchProducts" />
 
-    <Swiper
-      v-else
-      :modules="modules"
-      :slides-per-view="4"
-      :space-between="16"
-      navigation
-      :breakpoints="{
-        0: { slidesPerView: 1.2 },
-        640: { slidesPerView: 2 },
-        1024: { slidesPerView: 4 },
-      }"
-    >
-      <SwiperSlide v-for="product in products" :key="product.id">
-        <ProductCard
-          :id="product.id"
-          :image="primaryProductImage(product)"
-          :hover-image="hoverProductImage(product)"
-          :title="product.title"
-          :stock="product.stock"
-          :rating="product.rating"
-          :price="product.price"
-          :discount="product.discountPercentage"
-          :brand="product.brand"
-        />
-      </SwiperSlide>
-    </Swiper>
+    <div v-else class="product-slider__body" :class="{ 'product-slider__body--no-nav': !showNav }">
+      <button
+        v-if="showNav"
+        type="button"
+        class="swiper-button-prev"
+        aria-label="Previous"
+        :disabled="isBeginning"
+        :class="{ 'swiper-button-disabled': isBeginning }"
+        @click="slidePrev"
+      >
+        <svg
+          class="swiper-navigation-icon"
+          width="11"
+          height="20"
+          viewBox="0 0 11 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M0.383 20.076c-.271-.271-.271-.711 0-.982L9.198 10.28.383 1.465c-.271-.271-.271-.711 0-.982.271-.271.711-.271.982 0l9.069 9.069c.402.402.402 1.053 0 1.455L1.365 20.076c-.271.271-.711.271-.982 0Z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+      <button
+        v-if="showNav"
+        type="button"
+        class="swiper-button-next"
+        aria-label="Next"
+        :disabled="isEnd"
+        :class="{ 'swiper-button-disabled': isEnd }"
+        @click="slideNext"
+      >
+        <svg
+          class="swiper-navigation-icon"
+          width="11"
+          height="20"
+          viewBox="0 0 11 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M0.383 20.076c-.271-.271-.271-.711 0-.982L9.198 10.28.383 1.465c-.271-.271-.271-.711 0-.982.271-.271.711-.271.982 0l9.069 9.069c.402.402.402 1.053 0 1.455L1.365 20.076c-.271.271-.711.271-.982 0Z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+      <Swiper
+        :slides-per-view="4"
+        :space-between="16"
+        :breakpoints="{
+          0: { slidesPerView: 1.2 },
+          640: { slidesPerView: 2 },
+          1024: { slidesPerView: 4 },
+        }"
+        @swiper="onSwiper"
+      >
+        <SwiperSlide v-for="product in products" :key="product.id">
+          <ProductCard
+            :id="product.id"
+            :image="primaryProductImage(product)"
+            :hover-image="hoverProductImage(product)"
+            :title="product.title"
+            :stock="product.stock"
+            :rating="product.rating"
+            :price="product.price"
+            :discount="product.discountPercentage"
+            :brand="product.brand"
+          />
+        </SwiperSlide>
+      </Swiper>
+    </div>
   </div>
 </template>

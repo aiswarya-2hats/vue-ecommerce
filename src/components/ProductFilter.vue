@@ -1,5 +1,6 @@
 <script setup>
 import PriceRange from './PriceRange.vue'
+import { formatCategory } from '../utils/formatCategory'
 import '../assets/filter.css'
 
 const props = defineProps({
@@ -102,7 +103,7 @@ function onInStockChange(checked) {
               :checked="selectedCategory === category"
               @change="onCategoryChange(category)"
             />
-            {{ category }}
+            {{ formatCategory(category) }}
           </label>
         </section>
 
@@ -130,7 +131,8 @@ function onInStockChange(checked) {
               :checked="selectedRating === option.value"
               @change="onRatingChange(option.value)"
             />
-            <span class="stars" aria-hidden="true">{{ option.label }}</span> & up
+            <span class="stars" aria-hidden="true">{{ option.label }}</span>
+            <span v-if="option.value < 5"> & up</span>
           </label>
           <label class="check">
             <input

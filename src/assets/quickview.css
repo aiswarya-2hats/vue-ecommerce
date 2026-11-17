@@ -59,6 +59,12 @@
   @media (max-width: 768px) {
     padding-top: 4rem;
   }
+
+  .detail-page {
+    .container {
+      padding: 0;
+    }
+  }
 }
 
 .quickview__full-link {

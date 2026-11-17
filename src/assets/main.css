@@ -35,10 +35,6 @@ a {
   gap: 1.5rem;
 }
 
-.section-gap {
-  padding-bottom: 94px;
-}
-
 @media (min-width: 1024px) {
   .main {
     padding: 2rem 1.5rem 2.5rem;

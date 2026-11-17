@@ -50,7 +50,7 @@ const banners = [
 </script>
 
 <template>
-  <div class="home-banner section-gap">
+  <div class="home-banner container">
     <Swiper
       class="home__banner"
       :modules="modules"

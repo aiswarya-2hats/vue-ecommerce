@@ -7,6 +7,7 @@ import ProductSort from './ProductSort.vue'
 import RequestError from './RequestError.vue'
 import { getProducts, getCategories } from '../services/productService'
 import { primaryProductImage, hoverProductImage } from '../utils/productImage'
+import { formatCategory } from '../utils/formatCategory'
 import '../assets/productlisting.css'
 
 const route = useRoute()
@@ -57,10 +58,7 @@ const categoryHeading = computed(() => {
     return `${count} ${word} were found for "${searchQuery.value}"`
   }
   if (!selectedCategory.value) return 'All products'
-  return selectedCategory.value
-    .split(/[-_]/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+  return formatCategory(selectedCategory.value)
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -128,23 +126,15 @@ const paginatedProducts = computed(() => {
   return sortedProducts.value.slice(start, start + PAGE_SIZE)
 })
 
-// Build: 1 2 3 4 5 … 12  (or 1 … 4 5 6 … 12)
+// Compact: Prev 1 2 3 … 15 Next  (or 1 … 7 8 9 … 15)
 const pageItems = computed(() => {
   const total = totalPages.value
   const current = page.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
 
-  const set = new Set([1, total, current, current - 1, current + 1])
-  if (current <= 3) [2, 3, 4, 5].forEach((n) => set.add(n))
-  if (current >= total - 2) [total - 1, total - 2, total - 3, total - 4].forEach((n) => set.add(n))
-
-  const nums = [...set].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b)
-  const items = []
-  for (let i = 0; i < nums.length; i++) {
-    if (i > 0 && nums[i] - nums[i - 1] > 1) items.push('…')
-    items.push(nums[i])
-  }
-  return items
+  if (current <= 3) return [1, 2, 3, '…', total]
+  if (current >= total - 2) return [1, '…', total - 2, total - 1, total]
+  return [1, '…', current - 1, current, current + 1, '…', total]
 })
 
 const activeFilters = computed(() => {
@@ -332,6 +322,8 @@ fetchCategories()
   </div>
 
   <div class="layout">
+    <h2 class="listing__heading listing__heading--stack">{{ categoryHeading }}</h2>
+
     <Filter
       :categories="categories"
       :brands="availableBrands"
