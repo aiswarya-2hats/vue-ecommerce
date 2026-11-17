@@ -1,27 +1,29 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useBreadcrumbLabel } from '../composables/useBreadcrumbLabel'
 import '../assets/breadcrumb.css'
 
 const route = useRoute()
+const { label: dynamicLabel } = useBreadcrumbLabel()
 
-// Breadcrumbs.vue
 const crumbs = computed(() => {
   const items = [{ label: 'Home', path: '/' }]
 
-  // optional parent from meta, e.g. meta: { breadcrumb: 'Detail', parent: { label: 'Products', path: '/products' } }
   if (route.meta.parent) {
     items.push(route.meta.parent)
   }
 
-  if (route.meta.breadcrumb && route.path !== '/') {
-    items.push({
-      label:
-        typeof route.meta.breadcrumb === 'function'
-          ? route.meta.breadcrumb(route)
-          : route.meta.breadcrumb,
-      path: route.path,
-    })
+  if (route.path === '/') return items
+
+  const fromMeta =
+    typeof route.meta.breadcrumb === 'function'
+      ? route.meta.breadcrumb(route)
+      : route.meta.breadcrumb
+
+  const label = dynamicLabel.value || fromMeta
+  if (label) {
+    items.push({ label, path: route.path })
   }
 
   return items

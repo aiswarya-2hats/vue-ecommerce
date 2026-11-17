@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProduct, getVariantsForProduct } from '../services/productService'
 import { useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
 import { useQuickView } from '../composables/useQuickView'
 import { useProductVariants } from '../composables/useProductVariants'
+import { useBreadcrumbLabel } from '../composables/useBreadcrumbLabel'
 import ProductGallery from './ProductGallery.vue'
 import ProductBuyBox from './ProductBuyBox.vue'
 import ProductTabs from './ProductTabs.vue'
@@ -27,6 +28,7 @@ const router = useRouter()
 const { add: addToCart } = useCart()
 const { isWishlisted, toggle: toggleWishlist } = useWishlist()
 const { close: closeQuickView } = useQuickView()
+const { setLabel: setBreadcrumbLabel, clearLabel: clearBreadcrumbLabel } = useBreadcrumbLabel()
 
 const product = ref(null)
 const variants = ref([])
@@ -90,6 +92,7 @@ async function loadProduct(id) {
   variants.value = []
   qty.value = 1
   galleryImage.value = ''
+  if (props.syncVariantToRoute) clearBreadcrumbLabel()
 
   try {
     const data = await getProduct(id)
@@ -98,6 +101,7 @@ async function loadProduct(id) {
       return
     }
     product.value = data
+    if (props.syncVariantToRoute) setBreadcrumbLabel(data.title)
     variants.value = getVariantsForProduct(id)
     resetToFirst()
     galleryImage.value = selectedVariant.value?.image || primaryProductImage(data)
@@ -109,6 +113,10 @@ async function loadProduct(id) {
     loading.value = false
   }
 }
+
+onUnmounted(() => {
+  if (props.syncVariantToRoute) clearBreadcrumbLabel()
+})
 
 function retryLoad() {
   if (props.productId) loadProduct(props.productId)

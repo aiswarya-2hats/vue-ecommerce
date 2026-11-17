@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -20,7 +24,6 @@ const router = createRouter({
       name: 'product-detail',
       component: () => import('../pages/ProductDetailPage.vue'),
       meta: {
-        breadcrumb: (route) => `Product ${route.params.id}`,
         parent: { label: 'Products', path: '/products' },
       },
     },
