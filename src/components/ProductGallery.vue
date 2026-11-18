@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 
 const props = defineProps({
   images: { type: Array, default: () => [] },
@@ -13,6 +13,21 @@ defineEmits(['toggle-wish'])
 const activeImage = ref(props.image || props.images[0] || '')
 const zooming = ref(false)
 const zoomOrigin = ref('50% 50%')
+const lightboxOpen = ref(false)
+const closeBtnRef = ref(null)
+let lockedScrollY = 0
+
+const galleryImages = computed(() => {
+  if (props.images.length) return props.images
+  return activeImage.value ? [activeImage.value] : []
+})
+
+const activeIndex = computed(() => {
+  const i = galleryImages.value.indexOf(activeImage.value)
+  return i >= 0 ? i : 0
+})
+
+const canNavigate = computed(() => galleryImages.value.length > 1)
 
 watch(
   () => props.image,
@@ -32,8 +47,75 @@ function selectImage(src) {
   if (src) activeImage.value = src
 }
 
+function lockBackgroundScroll() {
+  lockedScrollY = window.scrollY
+  document.documentElement.style.overflow = 'hidden'
+  document.body.style.overflow = 'hidden'
+  document.body.style.position = 'fixed'
+  document.body.style.top = `-${lockedScrollY}px`
+  document.body.style.left = '0'
+  document.body.style.right = '0'
+  document.body.style.width = '100%'
+}
+
+function unlockBackgroundScroll() {
+  document.documentElement.style.overflow = ''
+  document.body.style.position = ''
+  document.body.style.top = ''
+  document.body.style.left = ''
+  document.body.style.right = ''
+  document.body.style.width = ''
+  // Keep overflow locked if Quick View is still open
+  const quickViewOpen = Boolean(document.querySelector('.quickview'))
+  document.body.style.overflow = quickViewOpen ? 'hidden' : ''
+  window.scrollTo(0, lockedScrollY)
+}
+
+async function openLightbox() {
+  if (!activeImage.value) return
+  zooming.value = false
+  lightboxOpen.value = true
+  lockBackgroundScroll()
+  await nextTick()
+  closeBtnRef.value?.focus()
+}
+
+function closeLightbox() {
+  lightboxOpen.value = false
+  unlockBackgroundScroll()
+}
+
+function showPrev() {
+  if (!canNavigate.value) return
+  const next = (activeIndex.value - 1 + galleryImages.value.length) % galleryImages.value.length
+  activeImage.value = galleryImages.value[next]
+}
+
+function showNext() {
+  if (!canNavigate.value) return
+  const next = (activeIndex.value + 1) % galleryImages.value.length
+  activeImage.value = galleryImages.value[next]
+}
+
+function onKeydown(event) {
+  if (!lightboxOpen.value) return
+  if (event.key === 'Escape') closeLightbox()
+  else if (event.key === 'ArrowLeft') showPrev()
+  else if (event.key === 'ArrowRight') showNext()
+}
+
+watch(lightboxOpen, (open) => {
+  if (open) window.addEventListener('keydown', onKeydown)
+  else window.removeEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (lightboxOpen.value) unlockBackgroundScroll()
+})
+
 function onZoomMove(event) {
-  if (event.target.closest('.detail__wish')) {
+  if (lightboxOpen.value || event.target.closest('.detail__wish')) {
     zooming.value = false
     return
   }
@@ -57,6 +139,12 @@ function onZoomLeave() {
     <div
       class="detail__main-image"
       :class="{ 'detail__main-image--zoom': zooming }"
+      role="button"
+      tabindex="0"
+      :aria-label="`View ${alt || 'product'} full screen`"
+      @click="openLightbox"
+      @keydown.enter.prevent="openLightbox"
+      @keydown.space.prevent="openLightbox"
       @mousemove="onZoomMove"
       @mouseleave="onZoomLeave"
     >
@@ -67,7 +155,7 @@ function onZoomLeave() {
         :class="{ 'detail__wish--active': wishlisted }"
         :aria-label="wishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
         :aria-pressed="wishlisted"
-        @click="$emit('toggle-wish')"
+        @click.stop="$emit('toggle-wish')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -101,4 +189,106 @@ function onZoomLeave() {
       </button>
     </div>
   </div>
+
+  <Teleport to="body">
+    <Transition name="lightbox">
+      <div
+        v-if="lightboxOpen"
+        class="lightbox"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="alt || 'Product image'"
+        @click.self="closeLightbox"
+      >
+        <button
+          ref="closeBtnRef"
+          type="button"
+          class="lightbox__close"
+          aria-label="Close full screen"
+          @click="closeLightbox"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        <p v-if="canNavigate" class="lightbox__count" aria-live="polite">
+          {{ activeIndex + 1 }} / {{ galleryImages.length }}
+        </p>
+
+        <div class="lightbox__stage">
+          <button
+            v-if="canNavigate"
+            type="button"
+            class="lightbox__nav lightbox__nav--prev"
+            aria-label="Previous image"
+            @click="showPrev"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+
+          <img :src="activeImage" :alt="alt" class="lightbox__img" />
+
+          <button
+            v-if="canNavigate"
+            type="button"
+            class="lightbox__nav lightbox__nav--next"
+            aria-label="Next image"
+            @click="showNext"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="canNavigate" class="lightbox__thumbs" role="tablist" aria-label="Images">
+          <button
+            v-for="(src, index) in galleryImages"
+            :key="`lightbox-${src}-${index}`"
+            type="button"
+            class="lightbox__thumb"
+            :class="{ 'lightbox__thumb--active': src === activeImage }"
+            role="tab"
+            :aria-selected="src === activeImage"
+            :aria-label="`Image ${index + 1}`"
+            @click="selectImage(src)"
+          >
+            <img :src="src" :alt="`${alt} ${index + 1}`" />
+          </button>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
