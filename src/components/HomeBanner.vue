@@ -7,9 +7,9 @@ import 'swiper/css/navigation'
 import '../assets/banner.css'
 
 import fragrances from '../assets/images/fragrance..webp'
-import Groceries from '../assets/images/Groceries.png'
-import Electrical from '../assets/images/Electrical.png'
-import furniture from '../assets/images/furniture.png'
+import Groceries from '../assets/images/Groceries.webp'
+import Electrical from '../assets/images/Electrical.webp'
+import furniture from '../assets/images/furniture.webp'
 
 interface Banner {
   image: string
