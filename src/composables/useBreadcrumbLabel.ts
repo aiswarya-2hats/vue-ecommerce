@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 
-const label = ref(null)
+const label = ref<string | null>(null)
 
 export function useBreadcrumbLabel() {
-  function setLabel(value) {
+  function setLabel(value: string | null) {
     label.value = value
   }
 

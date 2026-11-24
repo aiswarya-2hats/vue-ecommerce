@@ -1,5 +1,5 @@
 /** Turn API slug `home-decoration` into display label `Home Decoration`. */
-export function formatCategory(category) {
+export function formatCategory(category: string | null | undefined): string {
   if (!category) return ''
   return String(category)
     .split(/[-_]/)

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProduct, getVariantsForProduct } from '../services/productService'
@@ -10,18 +10,27 @@ import { useBreadcrumbLabel } from '../composables/useBreadcrumbLabel'
 import ProductGallery from './ProductGallery.vue'
 import ProductBuyBox from './ProductBuyBox.vue'
 import ProductTabs from './ProductTabs.vue'
-import Categoryslider from './Categoryslider.vue'
+import CategorySlider from './CategorySlider.vue'
 import RequestError from './RequestError.vue'
 import { primaryProductImage } from '../utils/productImage'
+import type { Product, ProductVariant } from '../types/product'
 import '../assets/productdetail.css'
 
-const props = defineProps({
-  productId: { type: [Number, String], required: true },
-  showBack: { type: Boolean, default: false },
-  syncVariantToRoute: { type: Boolean, default: false },
-  showRelated: { type: Boolean, default: true },
-  showTabs: { type: Boolean, default: true },
-})
+const props = withDefaults(
+  defineProps<{
+    productId: number | string
+    showBack?: boolean
+    syncVariantToRoute?: boolean
+    showRelated?: boolean
+    showTabs?: boolean
+  }>(),
+  {
+    showBack: false,
+    syncVariantToRoute: false,
+    showRelated: true,
+    showTabs: true,
+  },
+)
 
 const route = useRoute()
 const router = useRouter()
@@ -30,12 +39,11 @@ const { isWishlisted, toggle: toggleWishlist } = useWishlist()
 const { close: closeQuickView } = useQuickView()
 const { setLabel: setBreadcrumbLabel, clearLabel: clearBreadcrumbLabel } = useBreadcrumbLabel()
 
-const product = ref(null)
-const variants = ref([])
+const product = ref<Product | null>(null)
+const variants = ref<ProductVariant[]>([])
 const loading = ref(true)
-const error = ref(null)
+const error = ref<string | null>(null)
 const canRetry = ref(false)
-const galleryImage = ref('')
 const qty = ref(1)
 
 const {
@@ -47,6 +55,7 @@ const {
   stockLeft,
   canAdd,
   optionValues,
+  swatchFor,
   selectOption,
   resetToFirst,
 } = useProductVariants({
@@ -56,10 +65,18 @@ const {
   baseStock: () => product.value?.stock,
   baseImage: () => primaryProductImage(product.value),
   qty,
-  preferredVariantId: () => (props.syncVariantToRoute ? route.query.variant : null),
+  preferredVariantId: () => {
+    if (!props.syncVariantToRoute) return null
+    const v = route.query.variant
+    return Array.isArray(v) ? v[0] : v
+  },
 })
 
-const wishlisted = computed(() => product.value && isWishlisted(product.value.id))
+const wishlisted = computed(() =>
+  Boolean(
+    product.value && isWishlisted(product.value.id, selectedVariant.value?.id ?? null),
+  ),
+)
 
 const hasDiscount = computed(() => Math.round(Number(product.value?.discountPercentage)) >= 1)
 
@@ -76,22 +93,30 @@ const filledStars = computed(() => {
   return '★'.repeat(filled) + '☆'.repeat(5 - filled)
 })
 
-const images = computed(() => {
+// Product gallery images (used when the selected variant has no own image)
+const productImages = computed(() => {
   if (!product.value) return []
   const list = product.value.images?.length
     ? product.value.images
     : [product.value.thumbnail].filter(Boolean)
-  return [...new Set(list)]
+  return [...new Set(list.filter(Boolean))]
 })
 
-async function loadProduct(id) {
+// Variant with image → only that image. Otherwise → product images.
+const images = computed(() => {
+  const variantImage = selectedVariant.value?.image
+  return variantImage ? [variantImage] : productImages.value
+})
+
+const galleryImage = computed(() => images.value[0] || '')
+
+async function loadProduct(id: number | string) {
   loading.value = true
   error.value = null
   canRetry.value = false
   product.value = null
   variants.value = []
   qty.value = 1
-  galleryImage.value = ''
   if (props.syncVariantToRoute) clearBreadcrumbLabel()
 
   try {
@@ -104,7 +129,6 @@ async function loadProduct(id) {
     if (props.syncVariantToRoute) setBreadcrumbLabel(data.title)
     variants.value = getVariantsForProduct(id)
     resetToFirst()
-    galleryImage.value = selectedVariant.value?.image || primaryProductImage(data)
   } catch (err) {
     error.value = 'We couldn’t load this product. Check your connection and try again.'
     canRetry.value = true
@@ -131,17 +155,13 @@ watch(
   { immediate: true },
 )
 
-watch(selectedVariant, (variant) => {
-  galleryImage.value = variant?.image || primaryProductImage(product.value)
-})
-
-function onSelectOption(key, value) {
+function onSelectOption(key: string, value: string) {
   selectOption(key, value)
   if (!props.syncVariantToRoute) return
 
   const variantId = selectedVariant.value?.id
   const query = { ...route.query }
-  if (variantId) query.variant = variantId
+  if (variantId) query.variant = String(variantId)
   else delete query.variant
   router.replace({ query })
 }
@@ -222,6 +242,7 @@ function onBuyNow() {
             :option-keys="optionKeys"
             :selected-options="selectedOptions"
             :option-values="optionValues"
+            :swatch-for="swatchFor"
             :selected-variant="selectedVariant"
             :qty="qty"
             :can-add="canAdd"
@@ -242,7 +263,7 @@ function onBuyNow() {
         />
       </div>
       <div class="container">
-        <Categoryslider
+        <CategorySlider
           v-if="showRelated && product.category"
           :category="product.category"
           title="Related products"

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted } from 'vue'
 import { useQuickView } from '../composables/useQuickView'
 import ProductDetail from './ProductDetail.vue'
@@ -6,18 +6,18 @@ import '../assets/quickview.css'
 
 const { productId, close } = useQuickView()
 
-const dialogRef = ref(null)
-const closeBtnRef = ref(null)
-let lastFocused = null
+const dialogRef = ref<HTMLElement | null>(null)
+const closeBtnRef = ref<HTMLButtonElement | null>(null)
+let lastFocused: HTMLElement | null = null
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 function getFocusable() {
-  return [...(dialogRef.value?.querySelectorAll(FOCUSABLE) || [])]
+  return [...(dialogRef.value?.querySelectorAll<HTMLElement>(FOCUSABLE) || [])]
 }
 
-function onKeydown(event) {
+function onKeydown(event: KeyboardEvent) {
   if (!productId.value) return
 
   if (event.key === 'Escape') {
@@ -47,7 +47,7 @@ watch(productId, async (id, prev) => {
   document.body.style.overflow = id ? 'hidden' : ''
 
   if (id) {
-    lastFocused = document.activeElement
+    lastFocused = document.activeElement as HTMLElement | null
     await nextTick()
     closeBtnRef.value?.focus() // focus moves into popup
     window.addEventListener('keydown', onKeydown)

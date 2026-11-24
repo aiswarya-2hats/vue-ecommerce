@@ -1,26 +1,38 @@
-<script setup>
+<script setup lang="ts">
 import PriceRange from './PriceRange.vue'
 import { formatCategory } from '../utils/formatCategory'
 import '../assets/filter.css'
 
-const props = defineProps({
-  categories: { type: Array, default: () => [] }, // get categories from API
-  brands: { type: Array, default: () => [] }, // get brands from API
-  selectedCategory: { type: String, default: '' }, // get selected category from URL
-  selectedBrands: { type: Array, default: () => [] }, // get selected brands from URL
-  selectedRating: { type: Number, default: null }, // get selected rating from URL
-  inStockOnly: { type: Boolean, default: false },
-  minPrice: { type: Number, default: 0 },
-  maxPrice: { type: Number, default: 2500 },
-})
+const props = withDefaults(
+  defineProps<{
+    categories?: string[]
+    brands?: string[]
+    selectedCategory?: string
+    selectedBrands?: string[]
+    selectedRating?: number | null
+    inStockOnly?: boolean
+    minPrice?: number
+    maxPrice?: number
+  }>(),
+  {
+    categories: () => [],
+    brands: () => [],
+    selectedCategory: '',
+    selectedBrands: () => [],
+    selectedRating: null,
+    inStockOnly: false,
+    minPrice: 0,
+    maxPrice: 2500,
+  },
+)
 
-const emit = defineEmits([
-  'update:category',
-  'update:brands',
-  'update:rating',
-  'update:inStock',
-  'update:price',
-])
+const emit = defineEmits<{
+  'update:category': [category: string]
+  'update:brands': [brands: string[]]
+  'update:rating': [rating: number | null]
+  'update:inStock': [inStock: boolean]
+  'update:price': [payload: { min: number; max: number }]
+}>()
 
 const ratingOptions = [
   { value: 5, label: '★★★★★' },
@@ -29,23 +41,31 @@ const ratingOptions = [
   { value: 2, label: '★★☆☆☆' },
 ]
 
-function onCategoryChange(category) {
+function onCategoryChange(category: string) {
   emit('update:category', category || '')
 }
 
-function toggleBrand(brand, checked) {
+function toggleBrand(brand: string, checked: boolean) {
   const next = checked
     ? [...props.selectedBrands, brand]
     : props.selectedBrands.filter((b) => b !== brand)
   emit('update:brands', next)
 }
 
-function onRatingChange(value) {
+function onBrandChange(brand: string, event: Event) {
+  toggleBrand(brand, (event.target as HTMLInputElement).checked)
+}
+
+function onRatingChange(value: number | null) {
   emit('update:rating', value)
 }
 
-function onInStockChange(checked) {
+function onInStockChange(checked: boolean) {
   emit('update:inStock', checked)
+}
+
+function onInStockInput(event: Event) {
+  onInStockChange((event.target as HTMLInputElement).checked)
 }
 </script>
 
@@ -115,7 +135,7 @@ function onInStockChange(checked) {
               type="checkbox"
               :value="brand"
               :checked="selectedBrands.includes(brand)"
-              @change="toggleBrand(brand, $event.target.checked)"
+              @change="onBrandChange(brand, $event)"
             />
             {{ brand }}
           </label>
@@ -152,7 +172,7 @@ function onInStockChange(checked) {
             <input
               type="checkbox"
               :checked="inStockOnly"
-              @change="onInStockChange($event.target.checked)"
+              @change="onInStockInput($event)"
             />
             In stock only
           </label>

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWishlist } from '../composables/useWishlist'
@@ -8,20 +8,29 @@ import '../assets/productcard.css'
 
 const router = useRouter()
 
-const props = defineProps({
-  id: { type: [Number, String], required: true },
-  image: { type: String, required: true },
-  hoverImage: { type: String, default: '' },
-  title: { type: String, required: true },
-  stock: { type: [Number, String], required: true },
-  rating: { type: [Number, String], required: true },
-  price: { type: [Number, String], required: true },
-  discount: { type: [Number, String], required: true },
-  brand: { type: String, required: true },
-  removable: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    id: number | string
+    image: string
+    hoverImage?: string
+    title: string
+    stock: number | string
+    rating: number | string
+    price: number | string
+    discount: number | string
+    brand?: string
+    removable?: boolean
+  }>(),
+  {
+    hoverImage: '',
+    brand: '',
+    removable: false,
+  },
+)
 
-const emit = defineEmits(['remove'])
+const emit = defineEmits<{
+  remove: []
+}>()
 
 const { isWishlisted, toggle: toggleWishlist } = useWishlist()
 const { add: addToCart, getQty } = useCart()
@@ -39,7 +48,7 @@ function navigateToDetail() {
   router.push(detailLink.value)
 }
 
-function onQuickView(event) {
+function onQuickView(event: MouseEvent) {
   event.preventDefault()
   event.stopPropagation()
   openQuickView(props.id)

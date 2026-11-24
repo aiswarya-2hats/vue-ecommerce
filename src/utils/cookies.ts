@@ -1,5 +1,4 @@
-export function getCookie(name) {
-  // Read card data from cookie
+export function getCookie(name: string): unknown {
   const row = document.cookie.split('; ').find((r) => r.startsWith(name + '='))
   if (!row) return null
 
@@ -10,7 +9,6 @@ export function getCookie(name) {
   }
 }
 
-export function setCookie(name, value) {
-  // Set card data in cookie
+export function setCookie(name: string, value: unknown): void {
   document.cookie = `${name}=${encodeURIComponent(JSON.stringify(value))}; path=/; max-age=31536000; SameSite=Lax`
 }

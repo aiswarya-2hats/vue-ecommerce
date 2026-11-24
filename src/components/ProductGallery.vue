@@ -1,26 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 
-const props = defineProps({
-  images: { type: Array, default: () => [] },
-  image: { type: String, default: '' },
-  alt: { type: String, default: '' },
-  wishlisted: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    images?: string[]
+    image?: string
+    alt?: string
+    wishlisted?: boolean
+  }>(),
+  {
+    images: () => [],
+    image: '',
+    alt: '',
+    wishlisted: false,
+  },
+)
 
-defineEmits(['toggle-wish'])
+defineEmits<{
+  'toggle-wish': []
+}>()
 
-const activeImage = ref(props.image || props.images[0] || '')
+// Local thumb click override; cleared whenever parent image/list changes
+const pickedImage = ref<string | null>(null)
 const zooming = ref(false)
 const zoomOrigin = ref('50% 50%')
 const lightboxOpen = ref(false)
-const closeBtnRef = ref(null)
+const closeBtnRef = ref<HTMLButtonElement | null>(null)
 let lockedScrollY = 0
 
 const galleryImages = computed(() => {
   if (props.images.length) return props.images
-  return activeImage.value ? [activeImage.value] : []
+  if (props.image) return [props.image]
+  return []
 })
+
+const activeImage = computed(
+  () => pickedImage.value || props.image || galleryImages.value[0] || '',
+)
 
 const activeIndex = computed(() => {
   const i = galleryImages.value.indexOf(activeImage.value)
@@ -30,21 +46,14 @@ const activeIndex = computed(() => {
 const canNavigate = computed(() => galleryImages.value.length > 1)
 
 watch(
-  () => props.image,
-  (src) => {
-    if (src) activeImage.value = src
+  () => [props.image, props.images] as const,
+  () => {
+    pickedImage.value = null
   },
 )
 
-watch(
-  () => props.images,
-  (list) => {
-    if (!activeImage.value && list?.length) activeImage.value = list[0]
-  },
-)
-
-function selectImage(src) {
-  if (src) activeImage.value = src
+function selectImage(src: string) {
+  if (src) pickedImage.value = src
 }
 
 function lockBackgroundScroll() {
@@ -88,16 +97,16 @@ function closeLightbox() {
 function showPrev() {
   if (!canNavigate.value) return
   const next = (activeIndex.value - 1 + galleryImages.value.length) % galleryImages.value.length
-  activeImage.value = galleryImages.value[next]
+  pickedImage.value = galleryImages.value[next]
 }
 
 function showNext() {
   if (!canNavigate.value) return
   const next = (activeIndex.value + 1) % galleryImages.value.length
-  activeImage.value = galleryImages.value[next]
+  pickedImage.value = galleryImages.value[next]
 }
 
-function onKeydown(event) {
+function onKeydown(event: KeyboardEvent) {
   if (!lightboxOpen.value) return
   if (event.key === 'Escape') closeLightbox()
   else if (event.key === 'ArrowLeft') showPrev()
@@ -114,13 +123,14 @@ onUnmounted(() => {
   if (lightboxOpen.value) unlockBackgroundScroll()
 })
 
-function onZoomMove(event) {
-  if (lightboxOpen.value || event.target.closest('.detail__wish')) {
+function onZoomMove(event: MouseEvent) {
+  const target = event.target as HTMLElement | null
+  if (lightboxOpen.value || target?.closest('.detail__wish')) {
     zooming.value = false
     return
   }
 
-  const el = event.currentTarget
+  const el = event.currentTarget as HTMLElement
   const rect = el.getBoundingClientRect()
   const x = ((event.clientX - rect.left) / rect.width) * 100
   const y = ((event.clientY - rect.top) / rect.height) * 100
@@ -138,17 +148,22 @@ function onZoomLeave() {
   <div class="detail__gallery">
     <div
       class="detail__main-image"
-      :class="{ 'detail__main-image--zoom': zooming }"
-      role="button"
-      tabindex="0"
-      :aria-label="`View ${alt || 'product'} full screen`"
-      @click="openLightbox"
-      @keydown.enter.prevent="openLightbox"
-      @keydown.space.prevent="openLightbox"
-      @mousemove="onZoomMove"
+      :class="{ 'detail__main-image--zoom': zooming && Boolean(activeImage) }"
+      :role="activeImage ? 'button' : undefined"
+      :tabindex="activeImage ? 0 : undefined"
+      :aria-label="activeImage ? `View ${alt || 'product'} full screen` : undefined"
+      @click="activeImage ? openLightbox() : undefined"
+      @keydown.enter.prevent="activeImage ? openLightbox() : undefined"
+      @keydown.space.prevent="activeImage ? openLightbox() : undefined"
+      @mousemove="activeImage ? onZoomMove($event) : undefined"
       @mouseleave="onZoomLeave"
     >
-      <img :src="activeImage" :alt="alt" :style="{ transformOrigin: zoomOrigin }" />
+      <img
+        v-if="activeImage"
+        :src="activeImage"
+        :alt="alt"
+        :style="{ transformOrigin: zoomOrigin }"
+      />
       <button
         type="button"
         class="detail__wish"
@@ -175,9 +190,9 @@ function onZoomLeave() {
       </button>
     </div>
 
-    <div v-if="images.length > 1" class="detail__thumbs">
+    <div v-if="galleryImages.length > 1" class="detail__thumbs">
       <button
-        v-for="(src, index) in images"
+        v-for="(src, index) in galleryImages"
         :key="`${src}-${index}`"
         type="button"
         class="detail__thumb"

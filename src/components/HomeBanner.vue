@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Autoplay, Pagination, Navigation } from 'swiper/modules'
 import 'swiper/css'
@@ -11,9 +11,18 @@ import Groceries from '../assets/images/Groceries.png'
 import Electrical from '../assets/images/Electrical.png'
 import furniture from '../assets/images/furniture.png'
 
+interface Banner {
+  image: string
+  alt: string
+  heading: string
+  text: string
+  buttonLabel: string
+  buttonTo: string
+}
+
 const modules = [Autoplay, Pagination, Navigation]
 
-const banners = [
+const banners: Banner[] = [
   {
     image: fragrances,
     alt: 'Fragrance edit',

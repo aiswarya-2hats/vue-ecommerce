@@ -1,20 +1,19 @@
-<script setup>
-defineProps({
-  message: {
-    type: String,
-    required: true,
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    message: string
+    retryable?: boolean
+    retryLabel?: string
+  }>(),
+  {
+    retryable: true,
+    retryLabel: 'Retry',
   },
-  retryable: {
-    type: Boolean,
-    default: true,
-  },
-  retryLabel: {
-    type: String,
-    default: 'Retry',
-  },
-})
+)
 
-defineEmits(['retry'])
+defineEmits<{
+  retry: []
+}>()
 </script>
 
 <template>

@@ -1,29 +1,33 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
+import type { Swiper as SwiperInstance } from 'swiper'
 import 'swiper/css'
 import ProductCard from './ProductCard.vue'
 import RequestError from './RequestError.vue'
 import { getProduct } from '../services/productService'
 import { primaryProductImage, hoverProductImage } from '../utils/productImage'
+import type { Product } from '../types/product'
 import '../assets/productslider.css'
 
-const props = defineProps({
-  productIds: {
-    type: Array,
-    default: () => [],
+const props = withDefaults(
+  defineProps<{
+    productIds?: (number | string)[]
+  }>(),
+  {
+    productIds: () => [],
   },
-})
+)
 
-const swiperRef = ref(null)
+const swiperRef = ref<SwiperInstance | null>(null)
 const isBeginning = ref(true)
 const isEnd = ref(false)
 const showNav = ref(false)
-const products = ref([])
+const products = ref<Product[]>([])
 const loading = ref(true)
-const error = ref(null)
+const error = ref<string | null>(null)
 
-function onSwiper(swiper) {
+function onSwiper(swiper: SwiperInstance) {
   swiperRef.value = swiper
   syncNav(swiper)
   swiper.on('slideChange', () => syncNav(swiper))
@@ -33,7 +37,7 @@ function onSwiper(swiper) {
   swiper.on('unlock', () => syncNav(swiper))
 }
 
-function syncNav(swiper) {
+function syncNav(swiper: SwiperInstance) {
   isBeginning.value = swiper.isBeginning
   isEnd.value = swiper.isEnd
   // Hide arrows when all slides fit (e.g. ≤4 on desktop)
@@ -58,7 +62,7 @@ async function fetchProducts() {
       return
     }
     const results = await Promise.all(props.productIds.map((id) => getProduct(id)))
-    products.value = results.filter(Boolean)
+    products.value = results.filter((p): p is Product => Boolean(p))
   } catch (err) {
     error.value = 'We couldn’t load featured products. Check your connection and try again.'
     console.error(err)

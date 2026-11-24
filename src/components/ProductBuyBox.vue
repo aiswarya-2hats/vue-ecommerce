@@ -1,23 +1,45 @@
-<script setup>
+<script setup lang="ts">
 import VariantPicker from './VariantPicker.vue'
+import type { Product, ProductVariant, VariantOptions } from '../types/product'
 
-defineProps({
-  product: { type: Object, required: true },
-  displayPrice: { type: Number, required: true },
-  originalPrice: { type: Number, required: true },
-  hasDiscount: { type: Boolean, default: false },
-  filledStars: { type: String, default: '☆☆☆☆☆' },
-  stockLeft: { type: Number, default: 0 },
-  hasVariants: { type: Boolean, default: false },
-  optionKeys: { type: Array, default: () => [] },
-  selectedOptions: { type: Object, default: () => ({}) },
-  optionValues: { type: Function, required: true },
-  selectedVariant: { type: Object, default: null },
-  qty: { type: Number, default: 1 },
-  canAdd: { type: Boolean, default: false },
-})
+withDefaults(
+  defineProps<{
+    product: Product
+    displayPrice: number
+    originalPrice: number
+    hasDiscount?: boolean
+    filledStars?: string
+    stockLeft?: number
+    hasVariants?: boolean
+    optionKeys?: string[]
+    selectedOptions?: VariantOptions
+    optionValues: (key: string) => string[]
+    swatchFor?: (key: string, value: string) => string
+    selectedVariant?: ProductVariant | null
+    qty?: number
+    canAdd?: boolean
+  }>(),
+  {
+    hasDiscount: false,
+    filledStars: '☆☆☆☆☆',
+    stockLeft: 0,
+    hasVariants: false,
+    optionKeys: () => [],
+    selectedOptions: () => ({}),
+    swatchFor: () => '',
+    selectedVariant: null,
+    qty: 1,
+    canAdd: false,
+  },
+)
 
-defineEmits(['select', 'decrease-qty', 'increase-qty', 'add-to-cart', 'buy-now'])
+defineEmits<{
+  select: [key: string, value: string]
+  'decrease-qty': []
+  'increase-qty': []
+  'add-to-cart': []
+  'buy-now': []
+}>()
 </script>
 
 <template>
@@ -48,6 +70,7 @@ defineEmits(['select', 'decrease-qty', 'increase-qty', 'add-to-cart', 'buy-now']
         :option-keys="optionKeys"
         :selected-options="selectedOptions"
         :option-values="optionValues"
+        :swatch-for="swatchFor"
         @select="(key, value) => $emit('select', key, value)"
       />
     </div>

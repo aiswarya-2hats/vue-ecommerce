@@ -1,14 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBreadcrumbLabel } from '../composables/useBreadcrumbLabel'
 import '../assets/breadcrumb.css'
 
+interface Crumb {
+  label: string
+  path: string
+}
+
 const route = useRoute()
 const { label: dynamicLabel } = useBreadcrumbLabel()
 
 const crumbs = computed(() => {
-  const items = [{ label: 'Home', path: '/' }]
+  const items: Crumb[] = [{ label: 'Home', path: '/' }]
 
   if (route.meta.parent) {
     items.push(route.meta.parent)

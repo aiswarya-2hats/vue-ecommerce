@@ -1,67 +1,62 @@
 import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { getCookie, setCookie } from '../utils/cookies'
+import type { CartItem, VariantSelection } from '../types/product'
 
 const KEY = 'novashop_cart'
 
-function sameLine(item, id, variantId = null) {
+function sameLine(item: CartItem, id: number | string, variantId: string | number | null = null) {
   return item.id === Number(id) && (item.variantId || null) === (variantId || null)
 }
 
-function load() {
+function load(): CartItem[] {
   const data = getCookie(KEY)
   if (!Array.isArray(data)) return []
 
   return data
-    .map((item) => ({
-      id: Number(item.id),
-      qty: Math.max(1, Number(item.qty) || 1),
-      variantId: item.variantId || null,
-      options: item.options || null,
-      image: item.image || null,
-      price: item.price ?? null,
+    .map((item: Record<string, unknown> | CartItem) => ({
+      id: Number((item as CartItem).id),
+      qty: Math.max(1, Number((item as CartItem).qty) || 1),
+      variantId: ((item as CartItem).variantId as string | null) || null,
+      options: ((item as CartItem).options as CartItem['options']) || null,
+      image: ((item as CartItem).image as string | null) || null,
+      price: (item as CartItem).price ?? null,
     }))
     .filter((item) => item.id)
 }
 
-// main reactive variable that stores all cart products
-const cartItems = ref(load())
+const cartItems = ref<CartItem[]>(load())
 
 function save() {
-  // Whenever the cart changes, this function saves the latest cart data into the cookie.
   setCookie(KEY, cartItems.value)
 }
 
 export function useCart() {
-  //reusable composable function .can use in any component
-  const cartCount = computed(() => cartItems.value.length) //calculates the number of unique products in your cart
+  const cartCount = computed(() => cartItems.value.length)
 
-  function getQty(id, variantId = null) {
+  function getQty(id: number | string, variantId: string | number | null = null) {
     const numId = Number(id)
     if (variantId) {
       return cartItems.value.find((item) => sameLine(item, numId, variantId))?.qty || 0
     }
-    // no variant → sum all lines for this product
     return cartItems.value
       .filter((item) => item.id === numId)
       .reduce((sum, item) => sum + item.qty, 0)
   }
 
-  function add(id, qty = 1, variant = null) {
+  function add(id: number | string, qty = 1, variant: VariantSelection | null = null) {
     const numId = Number(id)
     const amount = Math.max(1, Number(qty) || 1)
-    const variantId = variant?.id || null
+    const variantId = variant?.id != null ? String(variant.id) : null
     if (!numId) return
 
     const existing = cartItems.value.find((item) => sameLine(item, numId, variantId))
 
     if (existing) {
-      // Same product + variant → increase qty only
       cartItems.value = cartItems.value.map((item) =>
         sameLine(item, numId, variantId) ? { ...item, qty: item.qty + amount } : item,
       )
     } else {
-      // New product/variant → new row
       cartItems.value = [
         ...cartItems.value,
         {
@@ -79,7 +74,7 @@ export function useCart() {
     toast.success('Added to cart')
   }
 
-  function setQty(id, qty, variantId = null) {
+  function setQty(id: number | string, qty: number, variantId: string | number | null = null) {
     const numId = Number(id)
     const next = Math.max(0, Number(qty) || 0)
     if (!numId) return
@@ -95,7 +90,7 @@ export function useCart() {
     save()
   }
 
-  function remove(id, variantId = null) {
+  function remove(id: number | string, variantId: string | number | null = null) {
     cartItems.value = cartItems.value.filter((item) => !sameLine(item, id, variantId))
     save()
   }

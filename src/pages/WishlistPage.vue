@@ -1,18 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import ProductCard from '../components/ProductCard.vue'
 import RequestError from '../components/RequestError.vue'
-import { useWishlist } from '../composables/useWishlist.js'
-import { getProduct, getVariantsForProduct } from '../services/productService.js'
-import { primaryProductImage, hoverProductImage } from '../utils/productImage.js'
+import { useWishlist } from '../composables/useWishlist'
+import { getProduct, getVariantsForProduct } from '../services/productService'
+import { primaryProductImage, hoverProductImage } from '../utils/productImage'
+import type { Product, WishlistItem } from '../types/product'
 import '../assets/wishlist.css'
 
 const { wishlistItems, wishlistCount, clear, remove } = useWishlist()
-const productsById = ref({})
+const productsById = ref<Record<number, Product>>({})
 const loading = ref(wishlistItems.value.length > 0)
-const error = ref(null)
+const error = ref<string | null>(null)
 
-function lineKey(item) {
+function lineKey(item: WishlistItem) {
   return `${item.id}-${item.variantId || 'default'}`
 }
 
@@ -36,7 +37,7 @@ const items = computed(() =>
         stock: variant?.stock ?? product.stock,
       }
     })
-    .filter(Boolean),
+    .filter((item): item is NonNullable<typeof item> => Boolean(item)),
 )
 
 async function fetchProducts() {

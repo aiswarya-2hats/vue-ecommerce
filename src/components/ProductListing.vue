@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type LocationQuery } from 'vue-router'
 import Filter from './ProductFilter.vue'
 import ProductCard from './ProductCard.vue'
 import ProductSort from './ProductSort.vue'
@@ -8,7 +8,15 @@ import RequestError from './RequestError.vue'
 import { getProducts, getCategories } from '../services/productService'
 import { primaryProductImage, hoverProductImage } from '../utils/productImage'
 import { formatCategory } from '../utils/formatCategory'
+import type { Product } from '../types/product'
 import '../assets/productlisting.css'
+
+interface FilterChip {
+  key: string
+  label: string
+  type: 'category' | 'brand' | 'rating' | 'inStock' | 'price'
+  value?: string
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -20,24 +28,28 @@ const FEATURED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const featuredRank = new Map(FEATURED_IDS.map((id, index) => [id, index]))
 
 // ─── State ───────────────────────────────────────────────────────────────────
-const products = ref([])
-const categories = ref([])
+const products = ref<Product[]>([])
+const categories = ref<string[]>([])
 const loading = ref(true)
-const error = ref(null)
+const error = ref<string | null>(null)
 
 // Local copy so rapid filter updates don't overwrite each other
 // (route.query can lag behind router.replace)
-const queryDraft = ref({ ...route.query })
+const queryDraft = ref<LocationQuery>({ ...route.query })
 
 // ─── URL-derived filters ─────────────────────────────────────────────────────
-const searchQuery = computed(() => route.query.q || '')
+const searchQuery = computed(() =>
+  typeof route.query.q === 'string' ? route.query.q : Array.isArray(route.query.q) ? route.query.q[0] || '' : '',
+)
 const selectedCategory = computed(() => (route.query.category ? String(route.query.category) : ''))
 const selectedBrands = computed(() =>
   route.query.brand ? String(route.query.brand).split(',').filter(Boolean) : [],
 )
 const selectedRating = computed(() => (route.query.rating ? Number(route.query.rating) : null))
 const inStockOnly = computed(() => route.query.inStock === '1' || route.query.inStock === 'true')
-const selectedSort = computed(() => route.query.sort || 'featured') // default sort is featured
+const selectedSort = computed(() =>
+  typeof route.query.sort === 'string' ? route.query.sort : 'featured',
+) // default sort is featured
 const minPrice = computed(() =>
   route.query.minPrice != null && route.query.minPrice !== '' ? Number(route.query.minPrice) : 0,
 )
@@ -62,7 +74,7 @@ const categoryHeading = computed(() => {
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function ratingOf(product) {
+function ratingOf(product: Product) {
   // Unrated / invalid → -1 (sort last; fail "X★ & up" filters)
   const n = Number(product.rating)
   return product.rating == null || Number.isNaN(n) ? -1 : n
@@ -70,14 +82,15 @@ function ratingOf(product) {
 
 // ─── Pipeline: Filter → Sort → Paginate ──────────────────────────────────────
 const availableBrands = computed(() => {
-  const brands = products.value.map((p) => p.brand).filter(Boolean)
+  const brands = products.value.map((p) => p.brand).filter((b): b is string => Boolean(b))
   return [...new Set(brands)].sort().slice(0, 7)
 })
 
 const filteredProducts = computed(() => {
   return products.value.filter((product) => {
     const matchBrand =
-      selectedBrands.value.length === 0 || selectedBrands.value.includes(product.brand)
+      selectedBrands.value.length === 0 ||
+      (product.brand != null && selectedBrands.value.includes(product.brand))
     const matchRating = !selectedRating.value || ratingOf(product) >= selectedRating.value
     const matchPrice = product.price >= minPrice.value && product.price <= maxPrice.value
     const matchStock = !inStockOnly.value || Number(product.stock) > 0
@@ -110,8 +123,8 @@ const sortedProducts = computed(() => {
   }
   if (sort === 'newest') {
     return list.sort((a, b) => {
-      const da = Date.parse(a.meta?.createdAt) || 0
-      const db = Date.parse(b.meta?.createdAt) || 0
+      const da = Date.parse(a.meta?.createdAt ?? '') || 0
+      const db = Date.parse(b.meta?.createdAt ?? '') || 0
       return db - da || a.id - b.id
     })
   }
@@ -127,7 +140,7 @@ const paginatedProducts = computed(() => {
 })
 
 // Compact: Prev 1 2 3 … 15 Next  (or 1 … 7 8 9 … 15)
-const pageItems = computed(() => {
+const pageItems = computed((): (number | string)[] => {
   const total = totalPages.value
   const current = page.value
   if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
@@ -138,7 +151,7 @@ const pageItems = computed(() => {
 })
 
 const activeFilters = computed(() => {
-  const chips = []
+  const chips: FilterChip[] = []
 
   if (selectedCategory.value) {
     chips.push({ key: 'category', label: selectedCategory.value, type: 'category' })
@@ -168,8 +181,16 @@ const activeFilters = computed(() => {
 })
 
 // ─── Query helpers ───────────────────────────────────────────────────────────
-function updateQuery(updates) {
-  const query = { ...queryDraft.value, ...updates }
+function updateQuery(updates: Record<string, string | number | null | undefined>) {
+  const query: LocationQuery = { ...queryDraft.value }
+
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value === '' || value == null) {
+      delete query[key]
+    } else {
+      query[key] = String(value)
+    }
+  })
 
   // Changing filters/sort resets page unless page is set explicitly
   const updateKeys = Object.keys(updates)
@@ -179,7 +200,7 @@ function updateQuery(updates) {
   }
 
   Object.keys(query).forEach((key) => {
-    if (query[key] === '' || query[key] == null || query[key] === false) {
+    if (query[key] === '' || query[key] == null) {
       delete query[key]
     }
   })
@@ -188,34 +209,34 @@ function updateQuery(updates) {
   router.replace({ query })
 }
 
-function setCategory(category) {
+function setCategory(category: string) {
   updateQuery({ category: category || '', brand: '' })
 }
 
-function setBrands(list) {
+function setBrands(list: string[]) {
   updateQuery({ brand: list.length ? list.join(',') : '' })
 }
 
-function setRating(value) {
+function setRating(value: number | null) {
   updateQuery({ rating: value || '' })
 }
 
-function setInStock(value) {
+function setInStock(value: boolean) {
   updateQuery({ inStock: value ? '1' : '' })
 }
 
-function setPrice({ min, max }) {
+function setPrice({ min, max }: { min: number; max: number }) {
   updateQuery({
     minPrice: min === 0 ? '' : min,
     maxPrice: max === PRICE_MAX ? '' : max,
   })
 }
 
-function setSort(value) {
+function setSort(value: string) {
   updateQuery({ sort: value })
 }
 
-function removeFilter(chip) {
+function removeFilter(chip: FilterChip) {
   if (chip.type === 'category') setCategory('')
   else if (chip.type === 'brand') setBrands(selectedBrands.value.filter((b) => b !== chip.value))
   else if (chip.type === 'rating') setRating(null)
@@ -235,7 +256,7 @@ function clearAllFilters() {
   })
 }
 
-function goToPage(n) {
+function goToPage(n: number) {
   if (n < 1 || n > totalPages.value) return
   // page=1 omitted from URL (default)
   updateQuery({ page: n <= 1 ? '' : String(n) })
@@ -432,7 +453,7 @@ fetchCategories()
               :class="{ 'is-active': item === page }"
               :aria-current="item === page ? 'page' : undefined"
               :aria-label="`Page ${item}`"
-              @click="goToPage(item)"
+              @click="goToPage(Number(item))"
             >
               {{ item }}
             </button>

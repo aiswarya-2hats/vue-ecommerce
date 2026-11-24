@@ -7,6 +7,7 @@
         "id": "83-s-navy",
         "sku": "MEN-FAS-BLU-083-S-NVY",
         "options": { "size": "S", "color": "Navy" },
+        "swatches": { "color": "#1b2a4a" },
         "price": 29.99,
         "stock": 10
       },
@@ -14,6 +15,7 @@
         "id": "83-m-navy",
         "sku": "MEN-FAS-BLU-083-M-NVY",
         "options": { "size": "M", "color": "Navy" },
+        "swatches": { "color": "#1b2a4a" },
         "price": 29.99,
         "stock": 15
       },
@@ -21,6 +23,7 @@
         "id": "83-l-black",
         "sku": "MEN-FAS-BLU-083-L-BLK",
         "options": { "size": "L", "color": "Black" },
+        "swatches": { "color": "#111111" },
         "price": 31.99,
         "stock": 8,
         "image": "/images/black-check-shirt.png"
@@ -35,6 +38,7 @@
         "id": "123-128-graphite",
         "sku": "SMA-APP-IPH-123-128-GRP",
         "options": { "storage": "128GB", "color": "Graphite" },
+        "swatches": { "color": "#555555" },
         "price": 1099.99,
         "stock": 12
       },
@@ -42,6 +46,7 @@
         "id": "123-256-sierra",
         "sku": "SMA-APP-IPH-123-256-SBL",
         "options": { "storage": "256GB", "color": "Sierra Blue" },
+        "swatches": { "color": "#9bb5ce" },
         "price": 1199.99,
         "stock": 7
       },
@@ -49,6 +54,7 @@
         "id": "123-512-gold",
         "sku": "SMA-APP-IPH-123-512-GLD",
         "options": { "storage": "512GB", "color": "Gold" },
+        "swatches": { "color": "#d4af37" },
         "price": 1399.99,
         "stock": 3,
         "image": "/images/gold-iphone13.png"
@@ -83,6 +89,7 @@
         "id": "4-matte-classic",
         "sku": "BEA-CHI-LIP-004-MAT",
         "options": { "finish": "Matte", "shade": "Classic Red" },
+        "swatches": { "shade": "#c41e3a" },
         "price": 12.99,
         "stock": 40
       },
@@ -90,6 +97,7 @@
         "id": "4-gloss-cherry",
         "sku": "BEA-CHI-LIP-004-GLS",
         "options": { "finish": "Gloss", "shade": "Cherry" },
+        "swatches": { "shade": "#9b1b30" },
         "price": 13.99,
         "stock": 25,
         "image": "/images/cherry-red.png"

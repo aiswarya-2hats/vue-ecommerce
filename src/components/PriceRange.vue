@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import '../assets/pricerange.css'
 
@@ -6,20 +6,28 @@ const PRICE_MIN = 0
 const PRICE_MAX = 2500
 const STEP = 10
 
-const props = defineProps({
-  minPrice: { type: Number, default: PRICE_MIN },
-  maxPrice: { type: Number, default: PRICE_MAX },
-})
+const props = withDefaults(
+  defineProps<{
+    minPrice?: number
+    maxPrice?: number
+  }>(),
+  {
+    minPrice: PRICE_MIN,
+    maxPrice: PRICE_MAX,
+  },
+)
 
-const emit = defineEmits(['update:price'])
+const emit = defineEmits<{
+  'update:price': [payload: { min: number; max: number }]
+}>()
 
 // Local values so the UI stays correct while dragging (props update only after URL changes)
 const localMin = ref(props.minPrice)
 const localMax = ref(props.maxPrice)
-const activeThumb = ref(null)
+const activeThumb = ref<'min' | 'max' | null>(null)
 
 watch(
-  () => [props.minPrice, props.maxPrice],
+  () => [props.minPrice, props.maxPrice] as const,
   ([min, max]) => {
     localMin.value = min
     localMax.value = max
@@ -30,22 +38,22 @@ function emitPrice() {
   emit('update:price', { min: localMin.value, max: localMax.value })
 }
 
-function onMinInput(event) {
-  const value = Number(event.target.value)
+function onMinInput(event: Event) {
+  const value = Number((event.target as HTMLInputElement).value)
   localMin.value = Math.min(Math.max(PRICE_MIN, value), localMax.value)
 }
 
-function onMaxInput(event) {
-  const value = Number(event.target.value)
+function onMaxInput(event: Event) {
+  const value = Number((event.target as HTMLInputElement).value)
   localMax.value = Math.max(Math.min(PRICE_MAX, value), localMin.value)
 }
 
-function onMinCommit(event) {
+function onMinCommit(event: Event) {
   onMinInput(event)
   emitPrice()
 }
 
-function onMaxCommit(event) {
+function onMaxCommit(event: Event) {
   onMaxInput(event)
   emitPrice()
 }

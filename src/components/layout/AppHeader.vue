@@ -1,31 +1,34 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWishlist } from '../../composables/useWishlist'
 import { useCart } from '../../composables/useCart'
+import { useCartDrawer } from '../../composables/useCartDrawer'
 import { getProducts } from '../../services/productService'
 import { primaryProductImage } from '../../utils/productImage'
+import type { Product } from '../../types/product'
 import '../../assets/header.css'
 
 const route = useRoute() //get information about the current page
 const router = useRouter()
 const { wishlistCount } = useWishlist()
+const { open: openCart } = useCartDrawer()
 const { cartCount } = useCart()
-const searchText = ref(route.query.q || '')
-const suggestions = ref([]) //list of products that match the search query
+const searchText = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const suggestions = ref<Product[]>([]) //list of products that match the search query
 const isFocused = ref(false)
 const hasSearched = ref(false)
 const searchOpen = ref(false)
-const searchInput = ref(null)
+const searchInput = ref<HTMLInputElement | null>(null)
 
-let searchTimer = null
+let searchTimer: ReturnType<typeof setTimeout> | undefined
 let searchRequestId = 0
 
 // Keep the search box in sync when the URL changes (e.g. browser back/forward)
 watch(
   () => route.query.q,
   (q) => {
-    searchText.value = q || ''
+    searchText.value = typeof q === 'string' ? q : ''
   },
 )
 
@@ -79,7 +82,7 @@ async function toggleSearch() {
   searchInput.value?.focus()
 }
 
-function onSearch(event) {
+function onSearch(event: Event) {
   event.preventDefault()
   searchOpen.value = false
 
@@ -93,7 +96,7 @@ function onSearch(event) {
   router.push({ path: '/products', query: { q } })
 }
 
-function goToProduct(id) {
+function goToProduct(id: number | string) {
   closeMobileSearch()
   searchText.value = ''
   suggestions.value = []
@@ -268,7 +271,7 @@ function clearSearch() {
           </svg>
           <span v-if="wishlistCount" class="badge">{{ wishlistCount }}</span>
         </router-link>
-        <router-link to="/cart" class="icon-btn" aria-label="Cart">
+        <button type="button" class="icon-btn" aria-label="Cart" @click="openCart">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path
               d="M6 6h15l-1.5 9H8L6 6zm0 0L5 3H2"
@@ -282,7 +285,7 @@ function clearSearch() {
             <circle cx="18" cy="20" r="1.4" fill="currentColor" />
           </svg>
           <span v-if="cartCount" class="badge">{{ cartCount }}</span>
-        </router-link>
+        </button>
       </div>
 
       <nav class="nav-desktop" aria-label="Categories">

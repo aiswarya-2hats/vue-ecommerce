@@ -1,15 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useCart } from '../composables/useCart'
 import { getProduct } from '../services/productService'
 import RequestError from '../components/RequestError.vue'
 import { primaryProductImage } from '../utils/productImage'
+import type { CartItem, Product } from '../types/product'
 import '../assets/cart.css'
 
 const { cartItems, setQty, remove, clear } = useCart()
-const products = ref({})
+const products = ref<Record<number, Product>>({})
 const loading = ref(cartItems.value.length > 0)
-const error = ref(null)
+const error = ref<string | null>(null)
 
 const lines = computed(() =>
   cartItems.value.map((item) => ({
@@ -53,19 +54,19 @@ async function fetchProducts() {
 
 watch(cartItems, fetchProducts, { immediate: true, deep: true })
 
-function decrease(id, qty, variantId) {
+function decrease(id: number, qty: number, variantId: string | null) {
   setQty(id, qty - 1, variantId)
 }
 
-function increase(id, qty, variantId) {
+function increase(id: number, qty: number, variantId: string | null) {
   setQty(id, qty + 1, variantId)
 }
 
-function lineKey(line) {
+function lineKey(line: CartItem) {
   return `${line.id}-${line.variantId || 'default'}`
 }
 
-function productLink(line) {
+function productLink(line: CartItem) {
   if (!line.variantId) return `/products/${line.id}`
   return { path: `/products/${line.id}`, query: { variant: line.variantId } }
 }

@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 
-const productId = ref(null) // product id to be displayed in the quick view.(productId is declared outside the function, so every component that calls useQuickView() shares the same value.)
+const productId = ref<number | string | null>(null)
 
 export function useQuickView() {
-  function open(id) {
+  function open(id: number | string | null | undefined) {
     productId.value = id != null ? Number(id) || id : null
   }
 

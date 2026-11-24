@@ -1,17 +1,26 @@
-<script setup>
+<script setup lang="ts">
 import '../assets/productsort.css'
 
-defineProps({
-  sort: { type: String, default: 'featured' },
-  heading: { type: String, default: 'All products' },
-  count: { type: Number, default: 0 },
-})
+withDefaults(
+  defineProps<{
+    sort?: string
+    heading?: string
+    count?: number
+  }>(),
+  {
+    sort: 'featured',
+    heading: 'All products',
+    count: 0,
+  },
+)
 
-const emit = defineEmits(['update:sort'])
+const emit = defineEmits<{
+  'update:sort': [value: string]
+}>()
 
-function onSortChange(event) {
+function onSortChange(event: Event) {
   // on sort change, emit the new sort value
-  emit('update:sort', event.target.value) // emit the new sort value to parent
+  emit('update:sort', (event.target as HTMLSelectElement).value) // emit the new sort value to parent
 }
 </script>
 

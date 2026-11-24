@@ -1,24 +1,31 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { ProductReview } from '../types/product'
 
-const props = defineProps({
-  description: { type: String, default: '' },
-  reviews: { type: Array, default: () => [] },
-})
+const props = withDefaults(
+  defineProps<{
+    description?: string
+    reviews?: ProductReview[]
+  }>(),
+  {
+    description: '',
+    reviews: () => [],
+  },
+)
 
-const activeTab = ref('description')
+const activeTab = ref<'description' | 'reviews'>('description')
 
 const tabs = computed(() => [
-  { id: 'description', label: 'Description' },
-  { id: 'reviews', label: `Reviews (${props.reviews.length})` },
+  { id: 'description' as const, label: 'Description' },
+  { id: 'reviews' as const, label: `Reviews (${props.reviews.length})` },
 ])
 
-function stars(rating) {
+function stars(rating: number) {
   const filled = Math.min(5, Math.max(0, Math.round(Number(rating) || 0)))
   return '★'.repeat(filled) + '☆'.repeat(5 - filled)
 }
 
-function formatDate(value) {
+function formatDate(value: string) {
   if (!value) return ''
   return new Date(value).toLocaleDateString(undefined, {
     year: 'numeric',
