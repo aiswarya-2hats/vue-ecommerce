@@ -94,13 +94,25 @@ function onAddToCart() {
   <article class="product">
     <div class="product__media">
       <router-link :to="detailLink" class="product__link">
-        <img :src="image" :alt="title" class="product__image" />
+        <img
+          :src="image"
+          :alt="title"
+          class="product__image"
+          width="374"
+          height="374"
+          loading="lazy"
+          decoding="async"
+        />
         <img
           v-if="hoverImage"
           :src="hoverImage"
           alt=""
           aria-hidden="true"
           class="product__image product__image--hover"
+          width="374"
+          height="374"
+          loading="lazy"
+          decoding="async"
         />
       </router-link>
 
