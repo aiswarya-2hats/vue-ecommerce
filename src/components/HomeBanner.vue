@@ -6,7 +6,6 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 import '../assets/banner.css'
 
-import fragrances from '../assets/images/fragrance.webp'
 import Groceries from '../assets/images/Groceries.webp'
 import Electrical from '../assets/images/Electrical.webp'
 import furniture from '../assets/images/furniture.webp'
@@ -24,7 +23,7 @@ const modules = [Autoplay, Pagination, Navigation]
 
 const banners: Banner[] = [
   {
-    image: fragrances,
+    image: '/images/fragrance.webp',
     alt: 'Fragrance edit',
     heading: 'Fragrance edit',
     text: 'Signature scents that linger — light, warm, and bold.',
