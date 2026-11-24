@@ -3,7 +3,7 @@
   max-width: 1280px;
   margin-inline: auto;
   box-sizing: border-box;
-  min-height: 28rem;
+  min-height: 36rem;
 }
 
 /* Gutter for outside arrows; clips live on .swiper so cards don't peek */
