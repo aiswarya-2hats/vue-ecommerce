@@ -70,7 +70,15 @@ const banners: Banner[] = [
     >
       <SwiperSlide v-for="(banner, index) in banners" :key="index">
         <div class="home__banner-slide">
-          <img :src="banner.image" :alt="banner.alt" />
+          <img
+            :src="banner.image"
+            :alt="banner.alt"
+            :fetchpriority="index === 0 ? 'high' : 'low'"
+            :loading="index === 0 ? 'eager' : 'lazy'"
+            decoding="async"
+            width="1280"
+            height="670"
+          />
           <div class="home__banner-overlay">
             <h2>{{ banner.heading }}</h2>
             <p>{{ banner.text }}</p>
