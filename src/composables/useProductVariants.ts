@@ -81,12 +81,13 @@ export function useProductVariants({
     return [...new Set(variants.value.map((v) => v.options[key]).filter(Boolean))]
   }
 
-  /** Hex from variant data for this option value; empty string = show as text */
+  /** Hex from variant data for color/shade options; empty string = show as text */
   function swatchFor(key: string, value: string) {
+    if (key !== 'color' && key !== 'shade') return ''
     const match = variants.value.find(
-      (v) => v.options[key] === value && Boolean(v.swatches?.[key]),
+      (v) => v.options[key] === value && Boolean(v.color),
     )
-    return match?.swatches?.[key] || ''
+    return match?.color || ''
   }
 
   function selectOption(key: string, value: string) {

@@ -39,8 +39,8 @@ export interface ProductVariant {
   id: string
   sku: string
   options: VariantOptions
-  /** Hex colors for option keys that should render as swatches, e.g. `{ color: "#1b2a4a" }` */
-  swatches?: Record<string, string>
+  /** Hex for color/shade swatches, e.g. `"#1b2a4a"` */
+  color?: string
   price: number
   stock: number
   image?: string

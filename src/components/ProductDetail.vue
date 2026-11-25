@@ -73,9 +73,7 @@ const {
 })
 
 const wishlisted = computed(() =>
-  Boolean(
-    product.value && isWishlisted(product.value.id, selectedVariant.value?.id ?? null),
-  ),
+  Boolean(product.value && isWishlisted(product.value.id, selectedVariant.value?.id ?? null)),
 )
 
 const hasDiscount = computed(() => Math.round(Number(product.value?.discountPercentage)) >= 1)
