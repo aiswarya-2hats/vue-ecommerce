@@ -242,7 +242,6 @@
 }
 
 .product__price {
-  padding-top: 0.45rem;
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--ink);

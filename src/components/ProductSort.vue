@@ -6,11 +6,13 @@ withDefaults(
     sort?: string
     heading?: string
     count?: number
+    loading?: boolean
   }>(),
   {
     sort: 'featured',
     heading: 'All products',
     count: 0,
+    loading: false,
   },
 )
 
@@ -28,7 +30,7 @@ function onSortChange(event: Event) {
   <div class="listing__toolbar">
     <h2 class="listing__heading">{{ heading }}</h2>
     <div class="listing__toolbar-right">
-      <p class="listing__count">{{ count }} products</p>
+      <p class="listing__count">{{ loading ? '…' : count }} products</p>
       <label class="sort" for="product-sort">
         <select id="product-sort" aria-label="Sort by" :value="sort" @change="onSortChange">
           <option value="featured">Featured</option>

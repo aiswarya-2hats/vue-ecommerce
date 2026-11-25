@@ -252,6 +252,10 @@
   color: var(--ink);
 }
 
+.detail__price--discount {
+  color: var(--accent);
+}
+
 .detail__original {
   font-size: var(--text-base);
   color: var(--ink-soft);
@@ -517,7 +521,7 @@
 
 @media (min-width: 1024px) {
   .detail {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    /* grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); */
     gap: 2.5rem;
   }
 

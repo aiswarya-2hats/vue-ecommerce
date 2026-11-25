@@ -8,6 +8,12 @@
   min-height: 60vh;
 }
 
+@media (min-width: 1600px) {
+  .home {
+    max-width: 1680px;
+  }
+}
+
 .home__title {
   font-family: 'Fraunces', Georgia, serif;
   font-size: var(--text-display);

@@ -6,6 +6,12 @@
   min-height: 36rem;
 }
 
+@media (min-width: 1600px) {
+  .product-slider {
+    max-width: 1680px;
+  }
+}
+
 /* Gutter for outside arrows; clips live on .swiper so cards don't peek */
 .product-slider__body {
   position: relative;

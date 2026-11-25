@@ -13,6 +13,7 @@ const props = withDefaults(
     inStockOnly?: boolean
     minPrice?: number
     maxPrice?: number
+    loading?: boolean
   }>(),
   {
     categories: () => [],
@@ -23,6 +24,7 @@ const props = withDefaults(
     inStockOnly: false,
     minPrice: 0,
     maxPrice: 2500,
+    loading: false,
   },
 )
 
@@ -103,7 +105,7 @@ function onInStockInput(event: Event) {
           @update:price="emit('update:price', $event)"
         />
 
-        <section class="filter-group">
+        <section class="filter-group filter-group--categories">
           <h3 class="filter-group__title">Category</h3>
           <label class="check">
             <input
@@ -115,30 +117,40 @@ function onInStockInput(event: Event) {
             />
             All
           </label>
-          <label v-for="category in categories" :key="category" class="check">
-            <input
-              type="radio"
-              name="category"
-              :value="category"
-              :checked="selectedCategory === category"
-              @change="onCategoryChange(category)"
-            />
-            {{ formatCategory(category) }}
-          </label>
+          <template v-if="categories.length === 0">
+            <div v-for="n in 8" :key="`cat-skel-${n}`" class="check check--skeleton" />
+          </template>
+          <template v-else>
+            <label v-for="category in categories" :key="category" class="check">
+              <input
+                type="radio"
+                name="category"
+                :value="category"
+                :checked="selectedCategory === category"
+                @change="onCategoryChange(category)"
+              />
+              {{ formatCategory(category) }}
+            </label>
+          </template>
         </section>
 
-        <section class="filter-group">
+        <section class="filter-group filter-group--brands">
           <h3 class="filter-group__title">Brands</h3>
-          <p v-if="brands.length === 0" class="filter-group__empty">No brands available</p>
-          <label v-for="brand in brands" :key="brand" class="check">
-            <input
-              type="checkbox"
-              :value="brand"
-              :checked="selectedBrands.includes(brand)"
-              @change="onBrandChange(brand, $event)"
-            />
-            {{ brand }}
-          </label>
+          <template v-if="loading && brands.length === 0">
+            <div v-for="n in 7" :key="`brand-skel-${n}`" class="check check--skeleton" />
+          </template>
+          <p v-else-if="brands.length === 0" class="filter-group__empty">No brands available</p>
+          <template v-else>
+            <label v-for="brand in brands" :key="brand" class="check">
+              <input
+                type="checkbox"
+                :value="brand"
+                :checked="selectedBrands.includes(brand)"
+                @change="onBrandChange(brand, $event)"
+              />
+              {{ brand }}
+            </label>
+          </template>
         </section>
 
         <section class="filter-group">

@@ -354,6 +354,7 @@ fetchCategories()
       :in-stock-only="inStockOnly"
       :min-price="minPrice"
       :max-price="maxPrice"
+      :loading="loading"
       @update:category="setCategory"
       @update:brands="setBrands"
       @update:rating="setRating"
@@ -392,12 +393,13 @@ fetchCategories()
           :sort="selectedSort"
           :heading="categoryHeading"
           :count="filteredProducts.length"
+          :loading="loading"
           @update:sort="setSort"
         />
       </div>
 
       <div v-if="loading" class="products" aria-busy="true" aria-label="Loading products">
-        <div v-for="n in 8" :key="n" class="skeleton-card">
+        <div v-for="n in PAGE_SIZE" :key="n" class="skeleton-card">
           <div class="skeleton-card__image"></div>
           <div class="skeleton-card__body">
             <div class="skeleton-card__line short"></div>

@@ -149,6 +149,7 @@ watch(
           0: { slidesPerView: 1.2 },
           640: { slidesPerView: 2 },
           1024: { slidesPerView: 4 },
+          1600: { slidesPerView: 4 },
         }"
         @swiper="onSwiper"
       >

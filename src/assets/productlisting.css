@@ -9,6 +9,10 @@
   border-radius: var(--radius);
   background: var(--accent-soft);
   border: 1px solid var(--accent);
+
+  @media (min-width: 1600px) {
+    max-width: 1680px;
+  }
 }
 
 .listing-header__title {
@@ -119,6 +123,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+  min-height: 72rem;
 
   @media (max-width: 384px) {
     grid-template-columns: 1fr;
@@ -310,5 +315,11 @@
 @media (min-width: 1200px) {
   .products {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .products {
+    grid-template-columns: repeat(4, 1fr);
   }
 }

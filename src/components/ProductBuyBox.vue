@@ -53,7 +53,9 @@ defineEmits<{
     </div>
 
     <div class="detail__price-row">
-      <span class="detail__price">${{ displayPrice.toFixed(2) }}</span>
+      <span class="detail__price" :class="{ 'detail__price--discount': hasDiscount }"
+        >${{ displayPrice.toFixed(2) }}</span
+      >
       <template v-if="hasDiscount">
         <s class="detail__original">${{ originalPrice.toFixed(2) }}</s>
         <span class="detail__discount"

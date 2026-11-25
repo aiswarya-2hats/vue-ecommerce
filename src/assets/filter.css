@@ -134,6 +134,14 @@
   color: var(--ink-soft);
 }
 
+.filter-group--categories {
+  min-height: 14rem;
+}
+
+.filter-group--brands {
+  min-height: 12rem;
+}
+
 .check {
   display: flex;
   align-items: center;
@@ -142,6 +150,25 @@
   font-size: var(--text-md);
   cursor: pointer;
   color: var(--ink);
+}
+
+.check--skeleton {
+  height: 1.1rem;
+  margin: 0.45rem 0;
+  border-radius: 4px;
+  background: #e8e4de;
+  pointer-events: none;
+  animation: filter-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes filter-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 .check input {

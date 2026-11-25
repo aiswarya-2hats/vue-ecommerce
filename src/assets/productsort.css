@@ -41,8 +41,10 @@
 }
 
 .listing__count {
+  min-width: 9rem;
   font-size: var(--text-md);
   color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
 
 .listing__count strong {

@@ -16,6 +16,12 @@
   text-align: center;
 }
 
+@media (min-width: 1600px) {
+  .footer__inner {
+    max-width: 1680px;
+  }
+}
+
 .footer__brand p {
   margin-top: 0.4rem;
   font-size: var(--text-sm);
